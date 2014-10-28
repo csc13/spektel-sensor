@@ -23,4 +23,4 @@ Structure:
 
 History:
 2014-10-28: Initial upload with REV_A board layout
-Please note that REV_A is the initial prototype and has several bugs
+- Please note that REV_A is the initial prototype and has several bugs
