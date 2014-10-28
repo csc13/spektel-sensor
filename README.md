@@ -13,6 +13,13 @@ Planned functions are:
 - Show cell voltages of main battery
 - Somehow programmable
 
+Structure:
+- firmware (compiled firmware for XMEGA)
+- flight_logs (from Spektrum transmitter)
+- hardware (Eagle PCB files)
+- project (Atmel Studio, make files, etc.)
+- src (C sources)
+
 History:
 2014-10-28: Initial upload with REV_A board layout
 Please note that REV_A is the initial prototype and has several bugs
