@@ -17,6 +17,7 @@ Structure:
 - firmware (compiled firmware for XMEGA)
 - flight_logs (from Spektrum transmitter)
 - hardware (Eagle PCB files)
+- pictures (photos)
 - project (Atmel Studio, make files, etc.)
 - src (C sources)
 
