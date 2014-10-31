@@ -99,10 +99,10 @@
 	 *
 	 * \retval Used capacity in mAms
 	 */	
-	static inline uint16_t calc_cap_mAms(uint16_t res1, uint16_t res2, uint32_t time1, uint32_t time2) {
+	static inline uint32_t calc_cap_mAms(uint32_t res1, uint32_t res2, uint32_t time1, uint32_t time2) {
 		if( ADC_B >= res1 ) res1 = ADC_B; //clipping to zero
 		if( ADC_B >= res2 ) res2 = ADC_B; //clipping to zero
-		return (((uint32_t)(((res1 + res2 - (ADC_B * 2)) >> 1)  * (time2 - time1) * ACS_R_M_O)) >> ACS_SHIFT_M); //for time in 1ms per bit
+		return (((uint32_t)(((res1 + res2 - (ADC_B << 1)) >> 1)  * (time2 - time1) * ACS_R_M_O)) >> ACS_SHIFT_M); //for time in 1ms per bit
 	}
 	
 	#define MAIN_RES_DIV	21 // (R1+R2) / R2, R1 = 4K7, R2 = 235 (two 470 in parallel)
@@ -119,7 +119,7 @@
 // Timer
 	#define TIMER_SENS	   TCC4
 	#define TIMER_SENS_RESOLUTION	31250
-	#define TIMER_SENS_PER 50 // 50Hz Samples(time between samples 20ms)
+	#define TIMER_SENS_PER 25 // 25Hz Samples(time between samples 40ms)
 #endif
 
 #endif // CONF_BOARD_H

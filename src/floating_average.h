@@ -21,23 +21,37 @@ typedef uint16_t tFloatAvgType;
 // has to hold values, SIZE_OF_AVG times tFloatAvgType
 typedef uint32_t tTempSumType;
 
-// Die Struktur, in der die Daten zwischengespeichert werden
+// Structure to remember temporary results
 typedef struct
 {
 	tFloatAvgType aData[SIZE_OF_AVG];
 	uint8_t IndexNextValue;
 } tFloatAvgFilter;
 
-
-// Initialize with start value
+/**
+ * \brief Initialize with start value
+ *
+ * \param io_pFloatAvgFilter Pointer to temp memory array
+ * \param i_DefaultValue Default value
+ */
 void InitFloatAvg(tFloatAvgFilter * io_pFloatAvgFilter,
 tFloatAvgType i_DefaultValue);
 
-//add new value
+/**
+ * \brief Add new value
+ *
+ * \param io_pFloatAvgFilter Pointer to temp memory array
+ * \param i_ui16NewValue New value
+ */
 void AddToFloatAvg(tFloatAvgFilter * io_pFloatAvgFilter,
 tFloatAvgType i_ui16NewValue);
 
-// Calculate the average from the last SIZE_OF_AVG values.
+/**
+ * \brief Calculate the average from the last SIZE_OF_AVG values
+ *
+ * \param io_pFloatAvgFilter Pointer to temp memory array
+ * \return Filtered value
+ */
 tFloatAvgType GetOutputValue(tFloatAvgFilter * io_pFloatAvgFilter);
 
 #endif /* FLOATING_AVERAGE_H_ */

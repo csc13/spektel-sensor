@@ -7,6 +7,12 @@
 
 #include "floating_average.h"
 
+/**
+ * \brief Initialize with start value
+ *
+ * \param io_pFloatAvgFilter Pointer to temp memory array
+ * \param i_DefaultValue Default value
+ */
 void InitFloatAvg(tFloatAvgFilter * io_pFloatAvgFilter,
 tFloatAvgType i_DefaultValue)
 {
@@ -19,7 +25,12 @@ tFloatAvgType i_DefaultValue)
 	io_pFloatAvgFilter->IndexNextValue = 0;
 }
 
-
+/**
+ * \brief Add new value
+ *
+ * \param io_pFloatAvgFilter Pointer to temp memory array
+ * \param i_ui16NewValue New value
+ */
 void AddToFloatAvg(tFloatAvgFilter * io_pFloatAvgFilter,
 tFloatAvgType i_NewValue)
 {
@@ -33,6 +44,13 @@ tFloatAvgType i_NewValue)
 }
 
 
+
+/**
+ * \brief Calculate the average from the last SIZE_OF_AVG values
+ *
+ * \param io_pFloatAvgFilter Pointer to temp memory array
+ * \return Filtered value
+ */
 tFloatAvgType GetOutputValue(tFloatAvgFilter * io_pFloatAvgFilter)
 {
 	tTempSumType TempSum = 0;

@@ -90,6 +90,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "spektel.h"
 #include "floating_average.h"
+#include "filter.h"
 
 // ADC measurement data structures
 volatile bool measure_cycle = false;
@@ -101,7 +102,10 @@ uint16_t vol_mea_val = 0; //latest measurement
 tFloatAvgFilter cur_filter1 = { {0}, 0 };  //filter level 1
 tFloatAvgFilter cur_filter2 = { {0}, 0 };  //filter level 2
 tFloatAvgFilter cur_filter3 = { {0}, 0 };  //filter level 3
-
+	
+//simple lowpass filter	
+tSimpleLowpassReg lowpass_reg = { 0, 0 };
+	
 // variables for capacity calculation
 uint16_t cur_adc_res[2] = { ADC_B, ADC_B }; // This is power = 0
 uint32_t time[2] = { 0 };
@@ -238,6 +242,9 @@ int main (void)
 	InitFloatAvg(&cur_filter1, ACS_B);
 	InitFloatAvg(&cur_filter2, ACS_B);
 	InitFloatAvg(&cur_filter3, ACS_B);
+	
+	// Initialize simple lowpass filter
+	init_simple_lowpass(&lowpass_reg, 2);
 		
 	while(1) {
 		
@@ -251,12 +258,26 @@ int main (void)
 			AddToFloatAvg(&cur_filter3, GetOutputValue(&cur_filter2));
 			cur_adc_res[act] = (GetOutputValue(&cur_filter3));
 			
+			//filter
+			power.volt1 = simple_lowpass(&lowpass_reg, cur_adc_res[act]);
+			
 			// finish capacity and current calculations
 			cap_mAms += calc_cap_mAms( cur_adc_res[!act], cur_adc_res[act], time[!act], time[act] );
 			cur.current = calc_mA(cur_adc_res[act]);
 			power.cap2 = cur.current * 10;
 			power.volt2 = cur_adc_res[act];
 			
+			//Check for capacity overflow
+			if( cap_mAms >= 3600000 ) {
+				cap_mAms -= 3600000;  //- one mAh
+				cap_mAh++;			  //+ one mAh
+				power.cap1--;         //subtract from capacity output
+				//Check for alarm: under BAT_MIN
+				if( power.cap1 <= cap_min ) {
+					power.cap1_alarm = true;
+				}
+			}
+	
 			// Set ADC channel to voltage pin measurement
 			adcch_set_volt_measure();
 			adcch_write_configuration(&ADC_MAIN, ADC_MAIN_CH, &adcch_conf);
@@ -269,18 +290,7 @@ int main (void)
 			// ADC channel back to current measurement and enable interrupt
 			adcch_set_cur_measure();
 			adcch_write_configuration(&ADC_MAIN, ADC_MAIN_CH, &adcch_conf);
-					
-			//Check for capacity overflow
-			if( cap_mAms >= 3600000 ) {
-				cap_mAms -= 3600000;  //- one mAh
-				cap_mAh++;			  //+ one mAh
-				power.cap1--;         //subtract from capacity output
-				//Check for alarm: under BAT_MIN
-				if( power.cap1 <= cap_min ) {
-					power.cap1_alarm = true;
-				}
-			}
-			
+	
 			measure_cycle = false;
 		
 			// write the values out
