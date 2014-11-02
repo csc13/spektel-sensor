@@ -244,7 +244,7 @@ int main (void)
 	InitFloatAvg(&cur_filter3, ACS_B);
 	
 	// Initialize simple lowpass filter
-	init_simple_lowpass(&lowpass_reg, 2);
+	init_simple_lowpass(&lowpass_reg, 4);
 		
 	while(1) {
 		
@@ -256,16 +256,13 @@ int main (void)
 			AddToFloatAvg(&cur_filter1, (cur_mea_val));
 			AddToFloatAvg(&cur_filter2, GetOutputValue(&cur_filter1));
 			AddToFloatAvg(&cur_filter3, GetOutputValue(&cur_filter2));
-			cur_adc_res[act] = (GetOutputValue(&cur_filter3));
-			
-			//filter
-			power.volt1 = simple_lowpass(&lowpass_reg, cur_adc_res[act]);
+			cur_adc_res[act] = (GetOutputValue(&cur_filter3));	
 			
 			// finish capacity and current calculations
 			cap_mAms += calc_cap_mAms( cur_adc_res[!act], cur_adc_res[act], time[!act], time[act] );
 			cur.current = calc_mA(cur_adc_res[act]);
 			power.cap2 = cur.current * 10;
-			power.volt2 = cur_adc_res[act];
+			//power.volt2 = cur_adc_res[act];
 			
 			//Check for capacity overflow
 			if( cap_mAms >= 3600000 ) {
@@ -285,12 +282,13 @@ int main (void)
 			// Start ADC measurement
 			adc_start_conversion(&ADC_MAIN, ADC_MAIN_CH);
 			adc_wait_for_interrupt_flag(&ADC_MAIN, ADC_MAIN_CH);
-			power.volt1 = calc_main_mV(adc_get_unsigned_result(&ADC_MAIN, ADC_MAIN_CH));
+			//filter
+			power.volt1 = calc_main_mV(simple_lowpass(&lowpass_reg, adc_get_unsigned_result(&ADC_MAIN, ADC_MAIN_CH)));
 		
 			// ADC channel back to current measurement and enable interrupt
 			adcch_set_cur_measure();
 			adcch_write_configuration(&ADC_MAIN, ADC_MAIN_CH, &adcch_conf);
-	
+		
 			measure_cycle = false;
 		
 			// write the values out
@@ -300,7 +298,7 @@ int main (void)
 			//ioport_toggle_pin_level(LED_GREEN);
 		}	
 
-/* code for Spektrum monitoring via LED
+/* code for Spektrum XBus monitoring via LED
 		ioport_set_pin_level(LED_GREEN, !spektel_getStatus());
 		r = spektel_getResult();
 		if( r == TWIS_RESULT_OK ) {

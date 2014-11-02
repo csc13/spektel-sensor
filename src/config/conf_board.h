@@ -56,6 +56,7 @@
  	
 	#define ACS758_U100 
 	#ifdef  ACS758_U100  
+/*	
 		#define ACS758_BASE		410		// mV at 0mA current at Vcc 3.3V (396 by data sheet at Vcc 3.3V)	
 		#define ACS758_RATE		26.4	// mV/A	(at 3.3V)
 		#define ACS758_RATE_M1	0.264	// mV/10mA	(at 3.3V)
@@ -72,6 +73,26 @@
 		#define ACS_R_M1_O		14.8	// ACS_R_M * 8
 		#define ACS_R_M_O		4751	// ACS_R_M * 256  for 32bit and max 40ms sample time only
 		
+		#define ACS_SHIFT		9		// /512
+		#define ACS_SHIFT_M1	3		// /8
+		#define ACS_SHIFT_M		8		// /256
+*/		
+		#define ACS758_BASE		410		// mV at 0mA current at Vcc 3.3V (396 by data sheet at Vcc 3.3V)
+		#define ACS758_RATE		24	// mV/A	(at 3.3V)
+		#define ACS758_RATE_M1	0.24	// mV/10mA	(at 3.3V)
+		#define ACS758_RATE_M	0.024	// mV/mA	(at 3.3V)
+				
+		#define ACS_B			837 	//(ACS758_BASE / ADC_MV_12RES)
+		#define ADC_B			1002 	//(ADC_USIG_BASE + ACS_B)
+				
+		#define ACS_R			0.02041 //(ADC_MV_12RES / ACS758_RATE)
+		#define ACS_R_M1		2.04125	//(ADC_MV_12RES / ACS758_RATE_M1)
+		#define ACS_R_M			20.4125	//(ADC_MV_12RES / ACS758_RATE_M)
+				
+		#define ACS_R_O			10.45 	// ACS_R * 512
+		#define ACS_R_M1_O		16.3	// ACS_R_M * 8
+		#define ACS_R_M_O		5226	// ACS_R_M * 256  for 32bit and max 40ms sample time only
+				
 		#define ACS_SHIFT		9		// /512
 		#define ACS_SHIFT_M1	3		// /8
 		#define ACS_SHIFT_M		8		// /256
@@ -120,6 +141,7 @@
 	#define TIMER_SENS	   TCC4
 	#define TIMER_SENS_RESOLUTION	31250
 	#define TIMER_SENS_PER 25 // 25Hz Samples(time between samples 40ms)
+	//#define TIMER_SENS_PER 50 // 50Hz Samples(time between samples 20ms)
 #endif
 
 #endif // CONF_BOARD_H
