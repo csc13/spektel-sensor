@@ -12,7 +12,7 @@ The sensor is based on the flowing components:
 The firmware was developed in C using Atmel Studio 6 and the Atmel ASF framework.
 
 	Note: The Spektrum RC TM1000 telemetry modul, a DSMX receiver with data port and a 
-	transmitter with telemetry functions is required. Not all spektrum telemetry able
+	transmitter with telemetry functions are required to use the sensor. Not all Spektrum RC telemetry able
 	transmitters support all sensors. I use a DX9 for testing.
 
 ### Basic functions
