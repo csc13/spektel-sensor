@@ -2,7 +2,7 @@ spektel-sensor
 ==============
 
 This is a small project for a XMEGA based sensor for the Spektrum-RC telemetry system.
-![spektrum Sensor Prototype](/blob/master/pictures/Prototyp.jpg)
+![spektrum Sensor Prototype](https://github.com/csc13/spektel-sensor/blob/master/pictures/Prototyp.jpg)
 
 The sensor is based on the flowing components:
 - Atmel XMEGA32E5
