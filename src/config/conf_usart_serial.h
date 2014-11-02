@@ -44,8 +44,10 @@
 #ifndef CONF_USART_SERIAL_H_INCLUDED
 #define CONF_USART_SERIAL_H_INCLUDED
 
+#include "conf_board.h"
+
 #define USART_SERIAL                     &USARTD0
-#define USART_SERIAL_BAUDRATE            9600
+#define USART_SERIAL_BAUDRATE            115200
 #define USART_SERIAL_CHAR_LENGTH         USART_CHSIZE_8BIT_gc
 #define USART_SERIAL_PARITY              USART_PMODE_DISABLED_gc
 #define USART_SERIAL_STOP_BIT            0

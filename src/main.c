@@ -86,7 +86,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <asf.h>
-//#include <stdio.h>
+#include <stdio.h>
 
 #include "spektel.h"
 #include "floating_average.h"
@@ -207,10 +207,27 @@ static void adc_init(void) {
 	adc_enable(&ADC_MAIN);
 }
 
+static void initPlotter(void) {
+	#if ARDUPLOT
+		printf("\nd %u %u %u %u %u %u\n", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val);
+		printf("n current volt1 volt2 cap1 cap2 measure\n");
+		printf("r current 0 5000 volt1 0 2600 volt2 0 2600 cap1 0 3000 cap2 0 55000 measure 0 4096\n");
+		printf("c current 255 255 255 volt1 0 0 255 volt2 0 255 0 cap1 255 0 0 cap2 0 255 255 measure 150 150 0\n");
+	#endif
+}
+
+static void writeToPlotter(void) {
+	#if ARDUPLOT
+		printf("d %u %u %u %u %u %u\n", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val);
+	#elif REALTIME_PLOTTER
+		printf("%u %u %u %u %u %u\r", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val);
+	#endif
+}
+
 int main (void)
 {
-	board_init();
 	sysclk_init();
+	board_init();
 	sleepmgr_init();
 	rtc_init();
 	
@@ -245,6 +262,9 @@ int main (void)
 	
 	// Initialize simple lowpass filter
 	init_simple_lowpass(&lowpass_reg, 4);
+	
+	// Initialize plotter
+	initPlotter();
 		
 	while(1) {
 		
@@ -294,8 +314,10 @@ int main (void)
 			// write the values out
 			spektel_write_powerbox_sens(power);
 			spektel_write_current_sens(cur);
+			
+			 writeToPlotter();
 		
-			//ioport_toggle_pin_level(LED_GREEN);
+			 //ioport_toggle_pin_level(LED_GREEN);
 		}	
 
 /* code for Spektrum XBus monitoring via LED

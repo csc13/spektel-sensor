@@ -10,7 +10,13 @@
 
 #define BOARD_REV_A
 
-//#define ENABLE_USART true
+//#define REALTIME_PLOTTER true
+
+//#define ARDUPLOT true
+
+#if (ARDUPLOT || REALTIME_PLOTTER)
+	#define ENABLE_USART true
+#endif	
 
 #ifdef BOARD_REV_A
 // TWIM for BMP180

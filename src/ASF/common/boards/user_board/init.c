@@ -29,15 +29,16 @@ void board_init(void)
 
 	#ifdef ENABLE_USART	
 	// startup USART
-	static usart_rs232_options_t USART_SERIAL_OPTIONS = {
+	static usart_rs232_options_t usart_serial_options = {
 		.baudrate = USART_SERIAL_BAUDRATE,
 		.charlength = USART_SERIAL_CHAR_LENGTH,
 		.paritytype = USART_SERIAL_PARITY,
 		.stopbits = USART_SERIAL_STOP_BIT
 	};
 	sysclk_enable_module(SYSCLK_PORT_D, PR_USART0_bm);
-	//usart_init_rs232(USART_SERIAL, &USART_SERIAL_OPTIONS);
-	stdio_serial_init(USART_SERIAL, &USART_SERIAL_OPTIONS);
+	//usart_init_rs232(USART_SERIAL, &usart_serial_options);
+
+	stdio_serial_init(USART_SERIAL, &usart_serial_options);
 	#endif
 	
 }
