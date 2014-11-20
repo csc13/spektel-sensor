@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Spektel-sensor : Capacity and altitude sensor für Spektrum telemetry">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Spektel-sensor</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/csc13/spektel-sensor">View on GitHub</a>
+
+          <h1 id="project_title">Spektel-sensor</h1>
+          <h2 id="project_tagline">Capacity and altitude sensor für Spektrum telemetry</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/csc13/spektel-sensor/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/csc13/spektel-sensor/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="spektel-sensor" class="anchor" href="#spektel-sensor" aria-hidden="true"><span class="octicon octicon-link"></span></a>spektel-sensor</h1>
+
+<p>This is a small project for a XMEGA based sensor for the Spektrum-RC telemetry system.
+<img src="https://github.com/csc13/spektel-sensor/blob/master/pictures/Prototyp.jpg" alt="spektrum Sensor Prototype"></p>
+
+<p>The sensor is based on the flowing components:</p>
+
+<ul>
+<li>Atmel XMEGA32E5</li>
+<li>Allegro ACS758LCB-100U hall effect current sensor</li>
+<li>Bosch BMP180 pressure sensor (planned)</li>
+</ul>
+
+<p>The firmware was developed in C using Atmel Studio 6 and the Atmel ASF framework.</p>
+
+<pre><code>Note: The Spektrum RC TM1000 telemetry modul, a DSMX receiver with data port and a 
+transmitter with telemetry functions are required to use the sensor. Not all Spektrum RC telemetry able
+transmitters support all sensors. I use a DX9 for testing.
+</code></pre>
+
+<h3>
+<a id="basic-functions" class="anchor" href="#basic-functions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Basic functions</h3>
+
+<p>The sensor measures 25 times a second the actual current, voltage and pressure. From this 
+it calculates the used capacity, hight and climb rate.</p>
+
+<ul>
+<li>Show used capacity of main battery</li>
+<li>Show actual current of main battery</li>
+<li>Show actual voltage of main battery</li>
+</ul>
+
+<h3>
+<a id="planned-functions" class="anchor" href="#planned-functions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Planned functions</h3>
+
+<ul>
+<li>Show altitude</li>
+<li>Show climb rate</li>
+<li>Show cell voltages of main battery</li>
+<li>Make it somehow programmable (change the current alarm for example)</li>
+</ul>
+
+<h3>
+<a id="project-structure" class="anchor" href="#project-structure" aria-hidden="true"><span class="octicon octicon-link"></span></a>Project Structure</h3>
+
+<ul>
+<li>firmware (compiled firmware for XMEGA)</li>
+<li>flight_logs (from Spektrum transmitter)</li>
+<li>hardware (Eagle PCB files)</li>
+<li>pictures (photos)</li>
+<li>project (Atmel Studio, make files, etc.)</li>
+<li>src (C sources)</li>
+</ul>
+
+<h3>
+<a id="history" class="anchor" href="#history" aria-hidden="true"><span class="octicon octicon-link"></span></a>History</h3>
+
+<h4>
+<a id="2014-10-28-initial-upload-with-rev_a-board-layout" class="anchor" href="#2014-10-28-initial-upload-with-rev_a-board-layout" aria-hidden="true"><span class="octicon octicon-link"></span></a>2014-10-28: Initial upload with REV_A board layout</h4>
+
+<ul>
+<li>Please note that REV_A is the initial prototype and has several bugs</li>
+</ul>
+
+<h4>
+<a id="2014-11-02-added-support-for-realtimeplotter-and-arduplot" class="anchor" href="#2014-11-02-added-support-for-realtimeplotter-and-arduplot" aria-hidden="true"><span class="octicon octicon-link"></span></a>2014-11-02: Added support for RealtimePlotter and arduplot</h4>
+
+<p>Two two great serial monitors based on Processing (<a href="https://www.processing.org/">https://www.processing.org/</a>).
+Please see <a href="https://github.com/sebnil/RealtimePlotter.git">https://github.com/sebnil/RealtimePlotter.git</a> and see <a href="https://github.com/dahart/arduplot.git">https://github.com/dahart/arduplot.git</a>).</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Spektel-sensor maintained by <a href="https://github.com/csc13">csc13</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
