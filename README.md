@@ -43,8 +43,6 @@ it calculates the used capacity, hight and climb rate.
 
 #### 2014-11-02: Added support for RealtimePlotter and arduplot
 Two two great serial monitors based on Processing (https://www.processing.org/).
-<<<<<<< HEAD
 Please see https://github.com/sebnil/RealtimePlotter.git and see https://github.com/dahart/arduplot.git).
-=======
-Please see https://github.com/sebnil/RealtimePlotter.git and see https://github.com/dahart/arduplot.git).
->>>>>>> FETCH_HEAD
+
+
