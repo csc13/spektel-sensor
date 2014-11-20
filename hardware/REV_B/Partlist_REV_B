@@ -1,0 +1,49 @@
+Partlist
+
+Exported from SPEKTRUM_Current_Usage_Sense REV_B.brd at 20.11.14 23:08
+
+EAGLE Version 7.1.0 Copyright (c) 1988-2014 CadSoft
+
+Assembly variant: 
+
+Part        Value                Package           Library        Position (mm)         Orientation
+
+ATXMEGA32E5                      TQFP32-08         atmega-atxmega (13.78 15.1)          R270.2
+BMP180      BMP180               BMP180_LGA7       bosch_sensors  (5.08 17.13)          R270
+C1          100nF                C0603             rcl            (18.94 27.93)         R270
+C2          1uF                  A/3216-18W        rcl            (21.07 27.28)         R90.3
+C3          4.7uF                A/3216-18W        rcl            (29.61 20.58)         R270
+C4          100nF                C0603             rcl            (27.34 30.47)         R180
+C5          100nF                C0603             rcl            (12.41 27.6)          R0
+C6          100nF                C0603             rcl            (10.87 8.78)          R0
+C7          100nF                C0603             rcl            (7 20.35)             R0
+C8          100nF                C0603             rcl            (18.35 20.1)          R90
+C10         2.2uF                A/3216-18W        rcl            (13.49 27.74)         MR0
+D2          MBR0520LT            SOD123            diode          (22.94 30.91)         R180
+IC1         MCP1826S-3302E/DB    SOT230P700X180-4N microchip_ldo  (25.94 25.59)         R270
+IC2         ACS758LCB-100U-PFF-T CB-PFF            allegro        (13.515 4.255)        MR180
+IC3         LM4041A12DBZ         DBZ_R-PDSO-G3     texas          (17.87 29.15)         MR180
+L1          300                  L0603             rcl            (28.81 16.16)         R90
+L2          300                  L0603             rcl            (12.39 29.89)         R180
+L3          300                  L0603             rcl            (7.21 9.83)           R0
+L4          300                  L0603             rcl            (20.43 21.61)         R270
+L6          300                  L0603             rcl            (6.94 22.71)          R0
+LD1         green                CHIPLED_0603      adafruit       (20.3 9.62)           R270
+LD2         red                  CHIPLED_0603      adafruit       (20.38 11.61)         R270
+PDI         AVRISP-6             AVRISP            adafruit       (6.28 27.78)          MR90
+R1          2.7K                 R0603             resistor       (20.97 15.06)         R270
+R2          2.7K                 R0603             resistor       (20.03 18.13)         R90
+R3          470                  R0603             resistor       (23.61 12.55)         R0
+R4          2.7K                 R0603             resistor       (3.95 21.25)          R90
+R5          2.7K                 R0603             resistor       (1.81 21.25)          R90
+R6          470                  R0603             resistor       (23.61 10.21)         R0
+R7          330                  R0603             resistor       (2.56 11.3)           R180
+R8          4.7K                 R0603             resistor       (2.56 9.09)           R0
+R9          10K                  R0603             resistor       (29.97 24.73)         MR180
+R10         2.7K                 R0603             resistor       (12.01 29.85)         MR0
+R11         4.7K                 R0603             resistor       (13.37 23.14)         R90
+R12         3K                   R0603             resistor       (15.42 23.13)         R270
+S1                               TASTER-9314_SMD   Ergaenzung     (24.93 25.08)         MR0
+SERIAL      AVRISP-6             AVRISP            adafruit       (28.26 9.55)          MR180
+X-BUS1      S4B-ZR               S4B-ZR            con-jst        (26.76 17.88)         MR270
+X-BUS2      B4B-ZR               B4B-ZR            con-jst        (23.04 17.88)         MR270
