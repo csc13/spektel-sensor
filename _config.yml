@@ -1,0 +1,56 @@
+title:            spektel-sensor
+tagline:          Spektrum capacity sensor
+description:      This is a small project for a XMEGA based sensor for the Spektrum-RC telemetry system
+canonical: http://jekyll.gtat.me
+
+# Owner/author information
+owner:
+  name:           Christian
+  avatar:         avatar.png
+  bio:            "IT, electronics & cycling"
+  email:          git@cescholz.de
+  github:         csc13
+  location:       "Dresden, Germany"
+  # Plug in your disqus shortname!
+
+tools:
+  standards:      "HTML, SCSS, Jekyll"
+  software:       "git"
+
+# Links to include in top navigation
+# For external links add external: true
+links:
+  - title: About
+    url: /about
+  - title: Github
+    url: https://github.com/csc13/spektel-sensor
+    external: true
+
+# http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+timezone:    Europe/Berlin
+future:      true
+highlighter: pygments
+markdown:    kramdown
+
+kramdown:
+  auto_ids: true
+  footnote_nr: 1
+  entity_output: as_char
+  toc_levels: 1..6
+  use_coderay: false
+
+  coderay:
+    coderay_line_numbers:
+    coderay_line_numbers_start: 1
+    coderay_tab_width: 4
+    coderay_bold_every: 10
+    coderay_css: class
+
+sass:
+    style: :compressed
+
+# https://github.com/mojombo/jekyll/wiki/Permalinks
+permalink:   /:categories/:title
+
+include: [".htaccess"]
+exclude: ["lib", "config.rb", "Capfile", "config", "log", "Rakefile", "Rakefile.rb", "tmp"]

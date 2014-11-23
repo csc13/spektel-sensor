@@ -1,24 +1,15 @@
+---
+layout: nil
+---
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc></loc>
+        <loc>{{ site.url }}</loc>
     </url>
 
-    
+    {% for post in site.posts %}
     <url>
-        <loc>/articles/new_rev_b</loc>
+        <loc>{{ site.url }}{{ post.url }}</loc>
     </url>
-    
-    <url>
-        <loc>/articles/Adding_Processing_Support</loc>
-    </url>
-    
-    <url>
-        <loc>/articles/test-flight-log</loc>
-    </url>
-    
-    <url>
-        <loc>/Initial%20upload</loc>
-    </url>
-    
+    {% endfor %}
 </urlset>

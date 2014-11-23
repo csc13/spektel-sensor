@@ -1,13 +1,16 @@
+---
+---
+
 /* TEAM */
-Creator: Christian
-Contact: git@cescholz.de
-Twitter: 
-Location: Dresden, Germany
+Creator: {{ site.owner.name }}
+Contact: {{ site.owner.email }}
+Twitter: {{ site.owner.twitter }}
+Location: {{ site.owner.location }}
                            
 /* THANKS */                           
 Creator of Balzac theme: Cole Townsend
 
 /* SITE */                         
-Last update: 2014-11-23
-Standards: HTML, SCSS, Jekyll                        
-Software: git
+Last update: {{ site.time | date: '%F' }}
+Standards: {{ site.tools.standards }}                        
+Software: {{ site.tools.software }}
