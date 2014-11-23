@@ -27,7 +27,8 @@ links:
     external: true
 
 # http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-timezone:    Europe/Berlin
+# http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+timezone:    America/New_York
 future:      true
 highlighter: pygments
 markdown:    kramdown
@@ -39,12 +40,12 @@ kramdown:
   toc_levels: 1..6
   use_coderay: false
 
-   coderay:
-     coderay_line_numbers:
-     coderay_line_numbers_start: 1
-     coderay_tab_width: 4
-     coderay_bold_every: 10
-     coderay_css: class
+  coderay:
+    coderay_line_numbers:
+    coderay_line_numbers_start: 1
+    coderay_tab_width: 4
+    coderay_bold_every: 10
+    coderay_css: class
 
 sass:
     style: :compressed
