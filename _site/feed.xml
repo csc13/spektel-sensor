@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+<title type="text">spektel-sensor</title>
+<subtitle type="text">Spektrum capacity sensor</subtitle>
+<generator uri="https://github.com/mojombo/jekyll">Jekyll</generator>
+<link rel="self" type="application/atom+xml" href="/feed.xml" />
+<link rel="alternate" type="text/html" href="" />
+<updated>2014-11-23T20:08:01+01:00</updated>
+<id>/</id>
+<author>
+  <name>Christian</name>
+  <uri>/</uri>
+  <email>git@cescholz.de</email>
+</author>
+
+
+<entry>
+  <title type="html"><![CDATA[New Revision_B board ready to order]]></title>
+  <link rel="alternate" type="text/html" href="/articles/new_rev_b" />
+  <id>/articles/new_rev_b</id>
+  <published>2014-11-23T00:00:00+01:00</published>
+  <updated>2014-11-23T00:00:00+01:00</updated>
+  <author>
+    <name>Christian</name>
+    <uri></uri>
+    <email>git@cescholz.de</email>
+  </author>
+  <content type="html">&lt;p&gt;The sensor worked and the last capacity measurements were within 3% of the loaded capacity.
+So thinks were working fine. But the REV_A board had a major bug on the footprint of the
+BMP180 pressure sensor I want to use for the Vario and Altimeter functions. So I tried to 
+fix it with the solder iron. At the end I bricked it. One of the PDI lines goes under the
+microcontroller and this was the one having a short connection to the ground.&lt;/p&gt;
+
+&lt;p&gt;Since I proved everything possible with &lt;code&gt;REV_A&lt;/code&gt; I went on and designed &lt;code&gt;REV_B&lt;/code&gt;. It’s on
+&lt;a href=&quot;https://github.com/csc13/spektel-sensor/tree/master/hardware/REV_B&quot;&gt;GitHub&lt;/a&gt; right now.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;NOTE: The REV_B is not yet tested. So I don’t know if it works!&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;news-in-revb&quot;&gt;News in REV_B&lt;/h3&gt;
+
+&lt;p&gt;There are some new features:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;A button for programming&lt;/li&gt;
+  &lt;li&gt;A voltage reverence of 2048mV to the AREF pin of the XMEGA&lt;/li&gt;
+  &lt;li&gt;Some &lt;strong&gt;Ferrite Chip Beads&lt;/strong&gt; and some small capacities at the IC VCC pins for steady working power&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;And it has a much smaller footprint of a board size under 35x35mm! So most components have
+the 0603 SMD package. This will be a challenge for the soldering I plan to do by hand.&lt;/p&gt;
+
+
+  &lt;p&gt;&lt;a href=&quot;/articles/new_rev_b&quot;&gt;New Revision_B board ready to order&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on November 23, 2014.&lt;/p&gt;</content>
+</entry>
+
+
+<entry>
+  <title type="html"><![CDATA[Adding Processing support]]></title>
+  <link rel="alternate" type="text/html" href="/articles/Adding_Processing_Support" />
+  <id>/articles/Adding_Processing_Support</id>
+  <published>2014-11-02T00:00:00+01:00</published>
+  <updated>2014-11-02T00:00:00+01:00</updated>
+  <author>
+    <name>Christian</name>
+    <uri></uri>
+    <email>git@cescholz.de</email>
+  </author>
+  <content type="html">&lt;h4 id=&quot;added-support-for-realtimeplotter-and-arduplot&quot;&gt;2014-11-02: Added support for RealtimePlotter and arduplot&lt;/h4&gt;
+&lt;p&gt;I learned, that the main part on building a sensor is the software to grind and polish the
+signals read from the hardware sensor. In this case it was the Allegro ACS758LCB-100U hall 
+effect current sensor.&lt;/p&gt;
+
+&lt;p&gt;So I read about digital filtering and use 3 cascaded the &lt;code&gt;Moving Average&lt;/code&gt; algorithm to smooth the
+sensor reading.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; //filter use in main.c
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; AddToFloatAvg(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;cur_filter1, (cur_mea_val));
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; AddToFloatAvg(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;cur_filter2, GetOutputValue(&lt;span class=&quot;ni&quot;&gt;&amp;amp;cur_filter1));&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; AddToFloatAvg(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;cur_filter3, GetOutputValue(&lt;span class=&quot;ni&quot;&gt;&amp;amp;cur_filter2));&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;5&lt;/span&gt; cur_adc_res[act] = (GetOutputValue(&lt;span class=&quot;ni&quot;&gt;&amp;amp;cur_filter3));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Each filter has 9 readings. For details see &lt;code&gt;src/floating_average.h&lt;/code&gt; and &lt;code&gt;.c&lt;/code&gt; files.&lt;/p&gt;
+
+&lt;p&gt;By testing I used the DX9 transmitter, recorded to the SD card and read that using the TLM Reader.
+This was a long procedure. Since I already put a header with the Rx, Tx serial pins on the
+board it shouldn’t be that much of a problem to show some output on the Mac using the Processing
+tools.&lt;/p&gt;
+
+&lt;p&gt;I found two great serial monitors based on &lt;a href=&quot;https://www.processing.org/&quot;&gt;Processing&lt;/a&gt;.
+Please see the &lt;a href=&quot;https://github.com/sebnil/RealtimePlotter.git&quot;&gt;RealtimePlotter&lt;/a&gt; and 
+&lt;a href=&quot;https://github.com/dahart/arduplot.git&quot;&gt;Arduplot&lt;/a&gt;. Thanks to their contributors. Just uncomment
+the lines in the &lt;code&gt;config/conf_board.h&lt;/code&gt; file.&lt;/p&gt;
+
+  &lt;p&gt;&lt;a href=&quot;/articles/Adding_Processing_Support&quot;&gt;Adding Processing support&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on November 02, 2014.&lt;/p&gt;</content>
+</entry>
+
+
+<entry>
+  <title type="html"><![CDATA[First test flight]]></title>
+  <link rel="alternate" type="text/html" href="/articles/test-flight-log" />
+  <id>/articles/test-flight-log</id>
+  <published>2014-10-29T00:00:00+01:00</published>
+  <updated>2014-10-29T00:00:00+01:00</updated>
+  <author>
+    <name>Christian</name>
+    <uri></uri>
+    <email>git@cescholz.de</email>
+  </author>
+  <content type="html">&lt;p&gt;This was one of the first flights using the sensor in it’s target environment, the T-REX 500 RC
+heli. I did a lot of bench testing using a light bulb up to 3A. But nor the bulb or the power
+supply could have done much more. So this was the first test with more Amps.&lt;/p&gt;
+
+&lt;p&gt;I’m using a Spektrum DX9 transmitter with SD card slot. I use the TLM Reader. Here is the result:&lt;/p&gt;
+
+&lt;figure&gt;
+	&lt;img src=&quot;https://github.com/csc13/spektel-sensor/blob/master/flight_logs/TREX500_20141026_REVA.png&quot; /&gt;
+	&lt;figcaption&gt;T-REX 500 flight log&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+  &lt;p&gt;&lt;a href=&quot;/articles/test-flight-log&quot;&gt;First test flight&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on October 29, 2014.&lt;/p&gt;</content>
+</entry>
+
+
+<entry>
+  <title type="html"><![CDATA[Initial Upload]]></title>
+  <link rel="alternate" type="text/html" href="/Initial%20upload" />
+  <id>/Initial upload</id>
+  <published>2014-10-28T00:00:00+01:00</published>
+  <updated>2014-10-28T00:00:00+01:00</updated>
+  <author>
+    <name>Christian</name>
+    <uri></uri>
+    <email>git@cescholz.de</email>
+  </author>
+  <content type="html">&lt;p&gt;The prototype of the spektel-sensor passed its first successful tests. The revision A layout
+and corresponding code is up on &lt;a href=&quot;https://github.com/csc13/spektel-sensor.git&quot;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Please be aware, that &lt;code&gt;REV_A&lt;/code&gt; had several faults on the board. So the Bosch BMP180 sensor
+won’t work, because I didn’t read the datasheet correctly.&lt;/p&gt;
+
+&lt;p&gt;After learning Eagle PCB, a software I can recommend to everybody, I spend some nights to
+find the Eagle libraries for the parts I wanted to use and create the layout. At the end
+I was little impatient to order the PCB (printed circuite board) at a board manufacturer.
+I chose a little one, who did a great job etching and drilling the board.&lt;/p&gt;
+
+&lt;p&gt;But I found several bugs in the layout. So I used a exacto hobby knife, some lacquered copper
+wire and fixed it. As a mostly software guy I had to learn that a hardware bug can’t be fixed that
+fast. And ordering a new board takes some days and money. so in the future I will print the board
+layout on paper and go through all components and wires.&lt;/p&gt;
+
+  &lt;p&gt;&lt;a href=&quot;/Initial%20upload&quot;&gt;Initial Upload&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on October 28, 2014.&lt;/p&gt;</content>
+</entry>
+
+</feed>
