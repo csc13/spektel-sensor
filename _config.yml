@@ -9,13 +9,9 @@ owner:
   avatar:         avatar.png
   bio:            "IT, electronics & cycling"
   email:          git@cescholz.de
-  github:         csc13
   location:       "Dresden, Germany"
   # Plug in your disqus shortname!
-
-tools:
-  standards:      "HTML, SCSS, Jekyll"
-  software:       "git"
+  
 
 # Links to include in top navigation
 # For external links add external: true
@@ -27,7 +23,7 @@ links:
     external: true
 
 # http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-timezone:    America/New_York
+timezone:    Europe/Berlin
 future:      true
 highlighter: pygments
 markdown:    kramdown
@@ -40,14 +36,11 @@ kramdown:
   use_coderay: false
 
   coderay:
-    coderay_line_numbers:
+    coderay_line_numbers: 
     coderay_line_numbers_start: 1
     coderay_tab_width: 4
     coderay_bold_every: 10
     coderay_css: class
-
-sass:
-    style: :compressed
 
 # https://github.com/mojombo/jekyll/wiki/Permalinks
 permalink:   /:categories/:title
