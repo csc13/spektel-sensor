@@ -1,7 +1,7 @@
 title:            spektel-sensor
 tagline:          Spektrum capacity sensor
 description:      This is a small project for a XMEGA based sensor for the Spektrum-RC telemetry system
-#canonical: http://csc13.github.io/spektel-sensor/
+canonical: http://spektel.cescholz.de
 
 # Owner/author information
 owner:
