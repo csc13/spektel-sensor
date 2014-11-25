@@ -16,6 +16,6 @@ supply could have done much more. So this was the first test with more Amps.
 I'm using a Spektrum DX9 transmitter with SD card slot. I use the TLM Reader. Here is the result:
 
 <figure>
-	<img src="https://github.com/csc13/spektel-sensor/blob/master/flight_logs/TREX500_20141026_REVA.png">
+	<img src="/images/TREX500_20141026_REVA.png">
 	<figcaption>T-REX 500 flight log</figcaption>
 </figure>
