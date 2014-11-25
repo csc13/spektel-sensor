@@ -26,7 +26,7 @@ in thinking of new ideas and how to make them on my own. I'm a RC Hobbyist hooke
 owning some Spektrum-RC equipment. Spektrum-RC announced a capacity sensor for some time,
 but it's still a miracle. There are capacity sensors available by the RC system manufacturers
 or by 3rd party companies, but not for Spektrum-RC. There are many projects, but non I found
-offering all informations for an easy build.
+offers all informations for an easy rebuild.
 
 So this is my try.
 
@@ -34,7 +34,7 @@ So this is my try.
 The sensor is based on the flowing components:
 - Atmel XMEGA32E5
 - Allegro ACS758LCB-100U hall effect current sensor
-- Bosch BMP180 pressure sensor (planned)
+- Bosch BMP180 pressure sensor
 
 The firmware was developed in C using Atmel Studio 6 and the Atmel ASF framework.
 
@@ -67,8 +67,9 @@ it calculates the used capacity, hight and climb rate.
 ### Thanks
 This project mostly profited from Mukenukem contributions on the Spektrum-RC telemetry
 protocol on rcgroups.com. Without this incredible research the project wouldn't be here.
+But there are many other successful projects out, which inspired me. Thanks to them as well.
 
 ### About me
-I was born in the early seventies and working as an IT professional on the business consulting 
-side. But I started my career as an engineer and programmer. So this project is a little 
-bit back to the roots to me.
+I was born in the early seventies in Germany and working as an IT professional on the
+business consulting side. But I started my career as an engineer and programmer.
+So this hobby project is a little bit back to the roots to me.
