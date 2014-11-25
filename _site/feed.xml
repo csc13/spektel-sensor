@@ -5,7 +5,7 @@
 <generator uri="https://github.com/mojombo/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2014-11-25T18:11:34+01:00</updated>
+<updated>2014-11-25T18:20:23+01:00</updated>
 <id>/</id>
 <author>
   <name>Christian</name>
@@ -15,7 +15,7 @@
 
 
 <entry>
-  <title type="html"><![CDATA[New Revision_B board ready to order]]></title>
+  <title type="html"><![CDATA[New Revision_B board ready]]></title>
   <link rel="alternate" type="text/html" href="/articles/new_rev_b" />
   <id>/articles/new_rev_b</id>
   <published>2014-11-23T00:00:00+01:00</published>
@@ -25,7 +25,7 @@
     <uri></uri>
     <email>git@cescholz.de</email>
   </author>
-  <content type="html">&lt;p&gt;The sensor worked and the last capacity measurements were within 3% of the loaded capacity.
+  <content type="html">&lt;p&gt;The &lt;code&gt;REV_A&lt;/code&gt; sensor worked and the last capacity measurements were within 3% of the loaded capacity.
 So thinks were working fine. But the REV_A board had a major bug on the footprint of the
 BMP180 pressure sensor I want to use for the Vario and Altimeter functions. So I tried to 
 fix it with the solder iron. At the end I bricked it. One of the PDI lines goes under the
@@ -50,7 +50,7 @@ microcontroller and this was the one having a short connection to the ground.&lt
 the 0603 SMD package. This will be a challenge for the soldering I plan to do by hand.&lt;/p&gt;
 
 
-  &lt;p&gt;&lt;a href=&quot;/articles/new_rev_b&quot;&gt;New Revision_B board ready to order&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on November 23, 2014.&lt;/p&gt;</content>
+  &lt;p&gt;&lt;a href=&quot;/articles/new_rev_b&quot;&gt;New Revision_B board ready&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on November 23, 2014.&lt;/p&gt;</content>
 </entry>
 
 
