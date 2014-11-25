@@ -1,5 +1,6 @@
 spektel-sensor
 ==============
+*[See the project blog here!](http://spektel.cescholz.de/)* 
 
 This is a small project for a XMEGA based sensor for the Spektrum-RC telemetry system.
 ![spektrum Sensor Prototype](https://github.com/csc13/spektel-sensor/blob/master/pictures/Prototyp.jpg)
