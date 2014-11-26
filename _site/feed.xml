@@ -5,13 +5,82 @@
 <generator uri="https://github.com/mojombo/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2014-11-25T18:20:23+01:00</updated>
+<updated>2014-11-26T23:56:07+01:00</updated>
 <id>/</id>
 <author>
   <name>Christian</name>
   <uri>/</uri>
   <email>git@cescholz.de</email>
 </author>
+
+
+<entry>
+  <title type="html"><![CDATA[XMEGA32E5]]></title>
+  <link rel="alternate" type="text/html" href="/articles/xmega" />
+  <id>/articles/xmega</id>
+  <published>2014-11-26T00:00:00+01:00</published>
+  <updated>2014-11-26T00:00:00+01:00</updated>
+  <author>
+    <name>Christian</name>
+    <uri></uri>
+    <email>git@cescholz.de</email>
+  </author>
+  <content type="html">&lt;p&gt;Some may ask, why I have chosen the XMEGA32E5 for the project. Here is why, or at least
+why at the end I used it.&lt;/p&gt;
+
+&lt;h3 id=&quot;why-the-xmega&quot;&gt;Why the XMEGA?&lt;/h3&gt;
+&lt;p&gt;Arduino is a great starting point for microcontroller beginners. Its widely available, 
+has boards for easy assembling, a nice IDE and libraries for abstraction. And it’s all 
+open source and low priced. So I started with the ATMEGA family going to straight 
+AVR GCC programming using an ATTINY. Seeing Schorsch’s project on the RC-Heli 
+&lt;a href=&quot;http://www.rc-heli.de/board/showthread.php?t=190165&quot;&gt;thread&lt;/a&gt; I saw the XMEGA with 
+some features. The upgrade from the ATMEGA shouldn’t be that difficult.&lt;/p&gt;
+
+&lt;h3 id=&quot;atmega-vs-xmega&quot;&gt;ATMEGA vs. XMEGA&lt;/h3&gt;
+&lt;p&gt;The XMEGA32E5 comes in a small TQFP package. I was looking for a SMD package, since it 
+reduces the overall project footprint. It brings a 12 Bit Analog-Digital-Converter 
+and a event-system. There are two I2C ports, one as an I2C Slave and one as an I2C Master. 
+The slave port is used for the connection to the Spektrum-RC, the master port for the BMP180 
+pressure sensor. The XMEGA has a 32MHz clock rate compared to the 16MHz of the ATMEGA328.&lt;/p&gt;
+
+&lt;p&gt;Being quite new to micros I didn’t expect much differences. 
+But there are some. First, the XMEGA uses 3.3V and can not be operated using 5V. 
+So all components should work with 3.3V too. Next the XMEGA uses PDI instead of ISP for 
+programming the device. So I needed a dedicated programmer, since the Bootloader/USB 
+method of the Arduino doesn’t work. I used the Arduino as an ISP for the ATTINY, which 
+doesn’t work as well. Eventually I got a small cheap AVRISP clone based on an Atmel 
+chip. But the Jungo USB drivers are not compatible to the Mac. So I switched to Windows, the 
+Atmel AVR Studio and the ASF a development framework. To test this it is handy to have 
+a XMEGA breakout board for testing.&lt;/p&gt;
+
+&lt;h3 id=&quot;some-words-on-developing-on-mac-osx&quot;&gt;Some words on developing on Mac OsX&lt;/h3&gt;
+&lt;p&gt;Using a Mac is no problem in most cases. A lot of Linux software is easily usable. There is
+a AVR GCC toolchain and avrdude version at the Atmel website. Using a 
+programmer with the FTDI USB chip (like the Arduinos use) is also no problem. 
+But both, the cheap AVR ISP mkII clone as well as an Atmel JTAG ICE mkII didn’t work with
+Mac OsX, since there is no Mac driver for the used Atmel USB chip. And I couldn’t get the
+libusb running. At the end I switched to Windows 8.1 in a Parallels VM. With this I
+use the AVR Studio 6.x. This is not that fast on my Mac Book Air (2010), but works.
+I like the GCC toolchain, because it’s lightweight, but the AVR Studio is much more easy to use.&lt;/p&gt;
+
+&lt;h3 id=&quot;some-words-on-avr-studio-and-asf&quot;&gt;Some words on AVR Studio and ASF&lt;/h3&gt;
+&lt;p&gt;The AVR Studio and ASF makes it easy to setup the device specific parts of a project.
+Just select the microcontroller and modules (like ADC, Timer, etc.) used 
+in the project, the programming tool and board if using a standard Atmel board.
+The IDE and ASF takes care of including the required libraries and tools. 
+The ASF works, but not always as expected. Maybe I will write on this later on.&lt;/p&gt;
+
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;The change from the ATMEGA to XMEGA was quite painful, since I changed the complete development
+tool chain. This was the case, since I use a Mac and the programmer hardware does not supporte Mac OsX.&lt;/p&gt;
+
+&lt;p&gt;Beside this it is quite different to program using Arduino, the Atmel AFS or pure C. I didn’t
+test the XMEGA Arduino port, but I will keep using Arduino for fast prototyping with the
+ATMEGA. At the moment I will stay with the AVR Studio and AFS for the more complex projects.&lt;/p&gt;
+
+
+  &lt;p&gt;&lt;a href=&quot;/articles/xmega&quot;&gt;XMEGA32E5&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on November 26, 2014.&lt;/p&gt;</content>
+</entry>
 
 
 <entry>

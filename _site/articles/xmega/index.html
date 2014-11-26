@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>XMEGA32E5 &#8211; spektel-sensor</title>
+<meta name="description" content="Using the Atmel XMEGA32E5">
+<meta name="keywords" content="Atmel, AVR, microcontroller, XMEGA, ATMEGA, XMEGA32E5">
+
+
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="XMEGA32E5 &#8211; spektel-sensor">
+<meta property="og:description" content="Using the Atmel XMEGA32E5">
+<meta property="og:url" content="/articles/xmega">
+<meta property="og:site_name" content="spektel-sensor">
+
+
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="spektel-sensor Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Type -->
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Crimson+Text:400,400italic,700,700italic" rel='stylesheet' type='text/css' />
+<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="/assets/css/entypo.css" media="all">
+
+<!-- In order to use Calendas Plus, you must first purchase it. Then, create a font-face package using FontSquirrel.
+<link rel='stylesheet' href='/assets/cal.css' media='all' />
+-->
+
+
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/i.css">
+
+<!-- Fresh Squeezed jQuery -->
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- Load Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.6.2.custom.min.js"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<link rel="shortcut icon" href="/favicon.ico">
+
+<div id="bump">
+  <body class="">
+    <header class="site-header">
+      <div class="wrap">
+        <hgroup>
+          <h1><a href="/">spektel-sensor</a></h1>
+        </hgroup>
+        <a href="#nav" class="menu"><span class='icons'>☰</span></a>
+        <nav role="navigation">
+          <ul>
+            <li>
+              <a href="/" title="spektel-sensor">Home</a>
+            </li>
+            
+            
+                <li><a href="/about" >About</a></li>
+            
+                <li><a href="https://github.com/csc13/spektel-sensor" target="_blank">Github</a></li>
+            
+
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+
+<section class="article">
+
+
+  <div class="overlay"></div>
+  <div class="featured-image" style="background-image: url(/images/Schematics_REV_B.jpg)"></div>
+
+
+
+      <article class="wrap post">
+        <header class="post-header">
+          <hgroup>
+            <h1>XMEGA32E5</h1>
+            <p class="date">Nov 26, 2014</p>
+            <p class="intro">Using the Atmel XMEGA32E5</p>
+          </hgroup>
+        </header>
+    
+        <p>Some may ask, why I have chosen the XMEGA32E5 for the project. Here is why, or at least
+why at the end I used it.</p>
+
+<h3 id="why-the-xmega">Why the XMEGA?</h3>
+<p>Arduino is a great starting point for microcontroller beginners. Its widely available, 
+has boards for easy assembling, a nice IDE and libraries for abstraction. And it’s all 
+open source and low priced. So I started with the ATMEGA family going to straight 
+AVR GCC programming using an ATTINY. Seeing Schorsch’s project on the RC-Heli 
+<a href="http://www.rc-heli.de/board/showthread.php?t=190165">thread</a> I saw the XMEGA with 
+some features. The upgrade from the ATMEGA shouldn’t be that difficult.</p>
+
+<h3 id="atmega-vs-xmega">ATMEGA vs. XMEGA</h3>
+<p>The XMEGA32E5 comes in a small TQFP package. I was looking for a SMD package, since it 
+reduces the overall project footprint. It brings a 12 Bit Analog-Digital-Converter 
+and a event-system. There are two I2C ports, one as an I2C Slave and one as an I2C Master. 
+The slave port is used for the connection to the Spektrum-RC, the master port for the BMP180 
+pressure sensor. The XMEGA has a 32MHz clock rate compared to the 16MHz of the ATMEGA328.</p>
+
+<p>Being quite new to micros I didn’t expect much differences. 
+But there are some. First, the XMEGA uses 3.3V and can not be operated using 5V. 
+So all components should work with 3.3V too. Next the XMEGA uses PDI instead of ISP for 
+programming the device. So I needed a dedicated programmer, since the Bootloader/USB 
+method of the Arduino doesn’t work. I used the Arduino as an ISP for the ATTINY, which 
+doesn’t work as well. Eventually I got a small cheap AVRISP clone based on an Atmel 
+chip. But the Jungo USB drivers are not compatible to the Mac. So I switched to Windows, the 
+Atmel AVR Studio and the ASF a development framework. To test this it is handy to have 
+a XMEGA breakout board for testing.</p>
+
+<h3 id="some-words-on-developing-on-mac-osx">Some words on developing on Mac OsX</h3>
+<p>Using a Mac is no problem in most cases. A lot of Linux software is easily usable. There is
+a AVR GCC toolchain and avrdude version at the Atmel website. Using a 
+programmer with the FTDI USB chip (like the Arduinos use) is also no problem. 
+But both, the cheap AVR ISP mkII clone as well as an Atmel JTAG ICE mkII didn’t work with
+Mac OsX, since there is no Mac driver for the used Atmel USB chip. And I couldn’t get the
+libusb running. At the end I switched to Windows 8.1 in a Parallels VM. With this I
+use the AVR Studio 6.x. This is not that fast on my Mac Book Air (2010), but works.
+I like the GCC toolchain, because it’s lightweight, but the AVR Studio is much more easy to use.</p>
+
+<h3 id="some-words-on-avr-studio-and-asf">Some words on AVR Studio and ASF</h3>
+<p>The AVR Studio and ASF makes it easy to setup the device specific parts of a project.
+Just select the microcontroller and modules (like ADC, Timer, etc.) used 
+in the project, the programming tool and board if using a standard Atmel board.
+The IDE and ASF takes care of including the required libraries and tools. 
+The ASF works, but not always as expected. Maybe I will write on this later on.</p>
+
+<h3 id="conclusion">Conclusion</h3>
+<p>The change from the ATMEGA to XMEGA was quite painful, since I changed the complete development
+tool chain. This was the case, since I use a Mac and the programmer hardware does not supporte Mac OsX.</p>
+
+<p>Beside this it is quite different to program using Arduino, the Atmel AFS or pure C. I didn’t
+test the XMEGA Arduino port, but I will keep using Arduino for fast prototyping with the
+ATMEGA. At the moment I will stay with the AVR Studio and AFS for the more complex projects.</p>
+
+
+          
+      <a class="share" href="https://twitter.com/intent/tweet?text=&quot;XMEGA32E5&quot;%20%20via%20&#64;" data-dnt="true">Share</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+      
+
+
+      </article>
+
+    </section>
+</div>
+
+<div class="push"></div>
+  <footer>
+    <aside class="wrap">
+      <ol class="prev-posts">
+        <p class="list-title">Recent Posts</p>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/xmega" title="XMEGA32E5">XMEGA32E5 </a></span>
+              <span class="date">Nov 26, 2014</span>
+            </li>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/new_rev_b" title="New Revision_B board ready">New Revision_B board ready </a></span>
+              <span class="date">Nov 23, 2014</span>
+            </li>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/Adding_Processing_Support" title="Adding Processing support">Adding Processing support </a></span>
+              <span class="date">Nov 02, 2014</span>
+            </li>
+        
+      </ol>
+      
+      <div class="social">
+        <ul>
+            <li><a id="mail" href="mailto:git@cescholz.de"><span class="foot-link">Contact Me</span></a></li>
+            
+            
+            
+            
+            
+        </ul>
+    </div>
+    </aside>
+    <small>&copy; 2014 Christian. Powered by <a href="http://jekyllrb.com">Jekyll</a> using the <a href="http://jekyll.gtat.me/about">Balzac</a> theme.</small>
+  </footer>
+
+  <!-- If they're out, get some from the cellar -->
+  <script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+  <script src="/assets/js/retina.min.js"></script>
+
+  <!-- Custom JS -->
+  <script src="/assets/js/scripts.js"></script>
+  
+
+  </body>
+</html>
