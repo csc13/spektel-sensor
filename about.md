@@ -22,8 +22,12 @@ Thanks to all direct and indirect contributors to this project.
 
 ### Why this project
 I was always interested in how things work and to apply my knowledge. So I'm almost restless 
-in thinking of new ideas and how to make them on my own. I'm a RC Hobbyist hooked to RC helicopters
-owning some Spektrum-RC equipment. Spektrum-RC announced a capacity sensor for some time,
+in thinking of new ideas and how to make them on my own. I used microcontroller modules and
+used to solder, but never designed a PCB or get in the very details of a micro. One of my
+targets in this project was to learn a lot about these things.
+
+I'm a RC Hobbyist hooked to RC helicopters owning some Spektrum-RC equipment.
+Spektrum-RC announced a capacity sensor for some time,
 but it's still a miracle. There are capacity sensors available by the RC system manufacturers
 or by 3rd party companies, but not for Spektrum-RC. There are many projects, but non I found
 offers all informations for an easy rebuild.
