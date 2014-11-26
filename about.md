@@ -10,9 +10,10 @@ image:
 
 ### Why this blog
 For this project and many other things I'm using the free contributions of many fine people 
-publishing their work to blogs, forums and other places. I like forums, but it took me many 
-hours reading discussions coming to the point. What I like most is an explaining web site
-and all the code in a repository like GitHub. So that is just what I try to do here. 
+publishing their work to blogs, forums and other places. I like forums, and there are great
+people offering their help, but sometimes it took me many hours reading discussions 
+coming to the point. What I like most is an explaining web site and all the code in a
+ repository like GitHub. So that is just what I try to do here. 
 
 Despite I'm not an english native speaker, I will post in english to make this information
 accessible to as many as possible.
@@ -24,7 +25,7 @@ Thanks to all direct and indirect contributors to this project.
 I was always interested in how things work and to apply my knowledge. So I'm almost restless 
 in thinking of new ideas and how to make them on my own. I used microcontroller modules and
 used to solder, but never designed a PCB or get in the very details of a micro. One of my
-targets in this project was to learn a lot about these things.
+targets of this project was to learn a lot about these things.
 
 I'm a RC Hobbyist hooked to RC helicopters owning some Spektrum-RC equipment.
 Spektrum-RC announced a capacity sensor for some time,
