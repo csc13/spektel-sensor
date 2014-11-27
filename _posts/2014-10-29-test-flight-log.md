@@ -6,7 +6,7 @@ date: 2014-10-29
 category: articles
 tags: [Spektrum RC, telemetry, DX9, images, test]
 image:
-  feature: Prototype_REV_A.jpg
+  feature: TREX_Bench.jpg
 ---
 
 This was one of the first flights using the sensor in it's target environment, the T-REX 500 RC
