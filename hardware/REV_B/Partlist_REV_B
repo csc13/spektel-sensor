@@ -47,3 +47,15 @@ S1                               TASTER-9314_SMD   Ergaenzung     (24.93 25.08) 
 SERIAL      AVRISP-6             AVRISP            adafruit       (28.26 9.55)          MR180
 X-BUS1      S4B-ZR               S4B-ZR            con-jst        (26.76 17.88)         MR270
 X-BUS2      B4B-ZR               B4B-ZR            con-jst        (23.04 17.88)         MR270
+
+6x 100nF 	ok
+1x 1µF		ok
+1x 2.2µF	ok
+1x 4.7µF	ok
+
+1x 330		ok
+2x 470		ok
+5x 2.7K		ok
+1x 3K		ok
+2x 4.7K		ok
+1x 10K		ok
