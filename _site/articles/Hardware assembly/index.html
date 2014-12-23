@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Hardware assembly &#8211; spektel-sensor</title>
+<meta name="description" content="Assemble the REV_B board and errata">
+<meta name="keywords" content="Atmel, AVR, microcontroller, XMEGA, ATMEGA, XMEGA32E5">
+
+
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Hardware assembly &#8211; spektel-sensor">
+<meta property="og:description" content="Assemble the REV_B board and errata">
+<meta property="og:url" content="/articles/Hardware%20assembly">
+<meta property="og:site_name" content="spektel-sensor">
+
+
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="spektel-sensor Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Type -->
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Crimson+Text:400,400italic,700,700italic" rel='stylesheet' type='text/css' />
+<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="/assets/css/entypo.css" media="all">
+
+<!-- In order to use Calendas Plus, you must first purchase it. Then, create a font-face package using FontSquirrel.
+<link rel='stylesheet' href='/assets/cal.css' media='all' />
+-->
+
+
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/i.css">
+
+<!-- Fresh Squeezed jQuery -->
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- Load Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.6.2.custom.min.js"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<link rel="shortcut icon" href="/favicon.ico">
+
+<div id="bump">
+  <body class="">
+    <header class="site-header">
+      <div class="wrap">
+        <hgroup>
+          <h1><a href="/">spektel-sensor</a></h1>
+        </hgroup>
+        <a href="#nav" class="menu"><span class='icons'>☰</span></a>
+        <nav role="navigation">
+          <ul>
+            <li>
+              <a href="/" title="spektel-sensor">Home</a>
+            </li>
+            
+            
+                <li><a href="/about" >About</a></li>
+            
+                <li><a href="https://github.com/csc13/spektel-sensor" target="_blank">Github</a></li>
+            
+
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+
+<section class="article">
+
+
+  <div class="overlay"></div>
+  <div class="featured-image" style="background-image: url(/images/Board_REV_B.jpg)"></div>
+
+
+
+      <article class="wrap post">
+        <header class="post-header">
+          <hgroup>
+            <h1>Hardware assembly</h1>
+            <p class="date">Dec 22, 2014</p>
+            <p class="intro">Assemble the REV_B board and errata</p>
+          </hgroup>
+        </header>
+    
+        <p>After a while the REV_B PCBs arrived. So I instantly started to assemble the board. I will 
+give you some insight in the process of the Surface Mount Technology (SMT) and tools I use.
+Then there where some pitfalls and workarounds I will show. </p>
+
+<h3 id="shrinking-the-board">Shrinking the board</h3>
+<p>Remember, that I am still quite new to the surface mount devices. From REV_A to REV_B I 
+changed all passive components from the 1206 to the 0603 package format. There are 
+imperial (inch) and metric (mm) size form factors. Unfortunately the 0603 exists in both. In
+inch it is 1.6mm long and 0.8mm wide. After some practice, I could handle this size, although the 
+1206 inch size with its length of 3.2mm and width of 1.6mm is a bit easier to handle. By
+mistake I ordered a few hundred metric 0603 (an imperial 0201) capacitors. These are 
+0.6mm long and 0.3 mm wide. I guess it is nearly impossible to solder them reliable using
+a solder iron. Find a overview on the sizes <a href="http://http://en.wikipedia.org/wiki/Surface-mount_technology">here</a>.</p>
+
+<h3 id="the-tooling">The tooling</h3>
+<p>I wanted to shrink the board and still use small and simple tools for the assembly. I don’t
+have the room for a reflow oven and all that stuff.</p>
+
+<p><strong>Here is my basic toolset:</strong></p>
+
+<ul>
+  <li>Good SMT tweezers (look for anti-magnetic, anti-static good quality)</li>
+  <li>Soldering iron with 0.8mm flat tip (I use a analog regulated 80W station)</li>
+  <li>Solder wick 1mm width</li>
+  <li>Leaded solder in 0.5mm diameter</li>
+  <li>Flux pen dispenser</li>
+  <li>Magnifying lens 15x</li>
+  <li>Clockmaker magnifying lens cap</li>
+  <li>0.4 mm tinned copper wire (mainly for the vias)</li>
+  <li>Wire cutter (not used for SMT)</li>
+  <li>Ohmmeter with connection tester</li>
+</ul>
+
+<figure>
+	<img src="/images/SMT_toolset.jpg" />
+	<figcaption>SMT Toolset</figcaption>
+</figure>
+
+<p>I wear the clockmaker magnifying lens with low magnification, because for soldering I don’t need
+to see all the details. I flux the pads and tin one pad. The pad doesn’t need to be 
+completely covered. Then I hold the SMD component with the tweezers and touch the component
+pin and pad with the solder tip by putting the flat part on the pad. Because of the small
+component and pad it takes only one to two seconds to see the solder flow. I use 320 to 400°C
+for soldering. If one pad is a ground pad with a some connections to larger PCB areas it may
+take a little longer to solder. Take your time, I didn’t burn a part up to now.</p>
+
+<p>Larger components like the XMEGA can be soldered the same way. Fix one pin, then another 
+one on the oposite edge. After that the pins can be soldered one by one.</p>
+
+<p>Then I use the 15x magnifying lens with some light (holding the PCB against a lamp can help
+as long as there are no big components mounted) to check for good solder and no unwanted shortcuts.
+If there is a shortcut, don’t panic. Flux the area, put a fresh end of the solder wick on
+the tinned part and the solder iron tip on top. The wick will soak up the solder.</p>
+
+<p>An Ohmmeter with a connection tester is a good companion. My multimeter has a mode, in 
+which it will beep, if there is a connection. So I don’t need to look up to see if there is 
+a wanted or unwanted connection. Test for the wanted connections and unwanted ones.</p>
+
+<p>After soldering the board I needed some time to find out unwanted connections like Ground
+to Vcc and many more.</p>
+
+<p>A great tip I found very useful is to fix the SMD belts on a small board using double sided
+duct tape. I wrote the values on the stripes. So everything is sorted and fixed.</p>
+
+<h3 id="assembly-time">Assembly time!</h3>
+<p>I ordered the board etched, tinned and drilled. So there are no connected vias and no 
+solder or print masks. So first I removed all layers expect the routes, vias and components 
+with their names in Eagle PCB to create a plan for assembling. You will find these assembly 
+plans in the Github repository in the hardware REV_B folder. I printed these in A4 and 
+marked the parts values by hand on it.</p>
+
+<p>The drill mask for the Allegro hall sensor big pins is incomplete. So I used a drill to
+create the long holes needed. To connect the vias, I laid the board on a flat surface,
+put 0.4mm tinned copper wire trough the holes and cut 2mm above. After 4 - 8 vias, I apply
+flux and solder them. After all the other side can be soldered and the exzessive wire
+cut away.</p>
+
+<p>Then I soldered the components on the top side (the µC side). I started with the small 
+components inside out. Be aware, that diodes are polarized and get the direction right. 
+The have a point or stripe on the minus pin. See the result on the next picture:</p>
+
+<figure>
+	<img src="/images/Assembled_REV_B_top.jpg" />
+	<figcaption>Assembled REV_B top side</figcaption>
+</figure>
+
+<p>The Allegro current pins are not soldered yet.</p>
+
+<p>In the B revision I tried to avoid using pins as vias, since it is difficult to solder a 
+pin header from its top. But it is necessary in two cases as shown in the errata later on.
+The bottom side is much easier, because the two pin headers, two X-Bus connectors, the
+Allegro sensor and button take almost all of the space.</p>
+
+<figure>
+	<img src="/images/Assembled_REV_B_bottom.jpg" />
+	<figcaption>Assembled REV_B bottom side</figcaption>
+</figure>
+
+<h3 id="errata">Errata</h3>
+<p>Again, there are some small faults on the board. Or at least things to optimize. I put
+the connectors on the bottom side, so that most of the soldering can be made on the top side only.
+The ground pin of the X-Bus ZH connectors needs to be connected to the bottom side.
+At least the angled connector can be soldered more easy than the straight one. <em>Make sure
+to solder this before assembling the straight connector</em>. If you only use this sensor,
+only one connector is needed anyway.</p>
+
+<p>Second, the ground pin of the Serial connector needs to be connected to the bottom plate.
+I used an exacto knife to remove the plastic around the pin. With lots of flux the pin then
+can be soldered.</p>
+
+<figure>
+	<img src="/images/Assembled_REV_B_bottom_errata.jpg" />
+	<figcaption>Assembled REV_B bottom side</figcaption>
+</figure>
+
+<h3 id="outlook">Outlook</h3>
+<p>In future versions, a small capacitor at the Allegro signal pin can serve as a hardware 
+low pass filter (thanks to Ingo on the rc-heli.de forum). Additional cell voltage measurements
+would be nice as well.  </p>
+
+
+          
+      <a class="share" href="https://twitter.com/intent/tweet?text=&quot;Hardware assembly&quot;%20%20via%20&#64;" data-dnt="true">Share</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+      
+
+
+      </article>
+
+    </section>
+</div>
+
+<div class="push"></div>
+  <footer>
+    <aside class="wrap">
+      <ol class="prev-posts">
+        <p class="list-title">Recent Posts</p>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/Hardware%20assembly" title="Hardware assembly">Hardware assembly </a></span>
+              <span class="date">Dec 22, 2014</span>
+            </li>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/xmega" title="XMEGA32E5">XMEGA32E5 </a></span>
+              <span class="date">Nov 26, 2014</span>
+            </li>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/new_rev_b" title="New Revision_B board ready">New Revision_B board ready </a></span>
+              <span class="date">Nov 23, 2014</span>
+            </li>
+        
+      </ol>
+      
+      <div class="social">
+        <ul>
+            <li><a id="mail" href="mailto:git@cescholz.de"><span class="foot-link">Contact Me</span></a></li>
+            
+            
+            
+            
+            
+        </ul>
+    </div>
+    </aside>
+    <small>&copy; 2014 Christian. Powered by <a href="http://jekyllrb.com">Jekyll</a> using the <a href="http://jekyll.gtat.me/about">Balzac</a> theme.</small>
+  </footer>
+
+  <!-- If they're out, get some from the cellar -->
+  <script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+  <script src="/assets/js/retina.min.js"></script>
+
+  <!-- Custom JS -->
+  <script src="/assets/js/scripts.js"></script>
+  
+
+  </body>
+</html>
