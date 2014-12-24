@@ -5,7 +5,7 @@
 <generator uri="https://github.com/mojombo/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2014-12-23T10:44:12+01:00</updated>
+<updated>2014-12-24T16:13:01+01:00</updated>
 <id>/</id>
 <author>
   <name>Christian</name>
@@ -15,9 +15,182 @@
 
 
 <entry>
+  <title type="html"><![CDATA[Firmware Part 1]]></title>
+  <link rel="alternate" type="text/html" href="/articles/Software_part_1" />
+  <id>/articles/Software_part_1</id>
+  <published>2014-12-23T00:00:00+01:00</published>
+  <updated>2014-12-23T00:00:00+01:00</updated>
+  <author>
+    <name>Christian</name>
+    <uri></uri>
+    <email>git@cescholz.de</email>
+  </author>
+  <content type="html">&lt;p&gt;After the board is assembled and working it is time to move to the software part. As
+mentioned earlier, most of the magic is in the code. This post is intended to help to
+understand the source code of the sensor firmware.&lt;/p&gt;
+
+&lt;p&gt;This is not a C or Atmel Studio tutorial. It will suite programmers, who know basic C (or
+C style programming) and move to the XMEGA development. Although the Atmel datasheet is our
+friend and the basis of the code I will not go into the XMEGA details.
+I’m just not expert enough up to now to do so.&lt;/p&gt;
+
+&lt;h3 id=&quot;testing-the-board&quot;&gt;Testing the board&lt;/h3&gt;
+&lt;p&gt;The “Hello world!” in the µC world is a blink. The board has two LEDs to do some blinking
+and see if the code uploads without problem. Whenever you get stuck it’s time to reassure
+the basic functions. A Todo would be to provide some basic testing code. Maybe by pressing
+the button, the sensor can run some test, blink the LEDs, send some test data to the transmitter.&lt;/p&gt;
+
+&lt;h3 id=&quot;development-process&quot;&gt;Development process&lt;/h3&gt;
+&lt;p&gt;I use the Atmel studio 6 with the ASF framework. The ASF wizard helps to specify the
+required libraries based on the cpu modules and functions you want to use. By setting up 
+the right device (the ATXMEGA32E5) and a custom board it selects the correct pin and register
+definitions.
+After writing the code, it needs to be compiled in an .elf file containing the machine code.
+Using the programming tool in AVR Studio the flash memory gets erased and rewritten. The
+µC resets and starts to run the new code.&lt;/p&gt;
+
+&lt;p&gt;A debugger seems very useful, but I didn’t use it much. In most environments a debugger
+affects the runtime, at least it corrupts the timing. I don’t know the effects for
+XMEGA debugging at the moment.&lt;/p&gt;
+
+&lt;h3 id=&quot;basic-architecture-of-the-firmware&quot;&gt;Basic architecture of the firmware&lt;/h3&gt;
+&lt;p&gt;The software consist of three main blocks:&lt;/p&gt;
+
+&lt;p&gt;A.) The classic &lt;code&gt;while(1){...}&lt;/code&gt; in the &lt;code&gt;main()&lt;/code&gt; function doing most of the calculation. After
+entering the infinit while loop the &lt;code&gt;sleepmanager&lt;/code&gt;is called and goes to sleep, until it
+gets a wake up call by block B (an additional global variable is used to assure only block B
+can trigger main measurement). The calculated measurements are written to block C.&lt;/p&gt;
+
+&lt;p&gt;B.) A timer to trigger the main ADC measuring the current using the Allegro hall sensor.
+The ADC is coupled to the timer by the event system. After the measurement is finished, an
+interrupt is fired reading the result und waking up block A from the sleep mode.&lt;/p&gt;
+
+&lt;p&gt;C.) This block serves the X-Bus requests from the Spektrum TM1000 telemetry module. This
+block is triggered by a TWI/I2C interrupt and just uses the values provided by block B 
+and transmits them to the telemetry module.&lt;/p&gt;
+
+&lt;p&gt;So we have two interrupt sources, the main measurement timer and the X-Bus interrupts. The
+first triggers the measurements and calculations. The X-Bus trigger grabs the data and
+sends it out. Now we go through the programm flow starting with the timer trigger of block
+B. &lt;/p&gt;
+
+&lt;h3 id=&quot;triggered-by-a-timer&quot;&gt;Triggered by a timer&lt;/h3&gt;
+&lt;p&gt;A timer is a module, which can fire events after a defined number of clock cycle counts 
+or when the counter register gets an overflow. The XMEGA can be clocked up to 32MHz, this
+are 32 million counts per second, if not using any prescaler. A prescaler can divide the
+clock rate by a binary factor (2,4,8,16, etc.) for longer intervals. By counting the 
+overflows in a second register timers can be used for longer times, than the overflow time.&lt;/p&gt;
+
+&lt;p&gt;The basic trigger of the sensor is a timer at 25 or 50Hz firing an event every 40 or 20ms.
+Both settings work without problems. To get the right time, many parameters needs to be
+considered. If the time is to long, the measurement may be to rough for a good capacity
+calculation. If the time is to short, the ADC measurement and calculations may be interrupted
+by the next cycle. ADCs need some time for precise results. The &lt;code&gt;tc_init()&lt;/code&gt; function
+initializes the timer with 3 interrupts. The &lt;code&gt;error_interrupt&lt;/code&gt; catches errors in the timer
+system and lights the red LED. the &lt;code&gt;overflow_interrupt&lt;/code&gt; restarts the timer. The &lt;code&gt;cca_interrupt&lt;/code&gt;
+is the one we are interested in this case. It is set to fire at half the timer period. Maybe
+for clarity I could have changed the code to just use the &lt;code&gt;overflow_interrupt&lt;/code&gt;. This would
+have the same effect in this case. &lt;/p&gt;
+
+&lt;p&gt;The timer event is used to trigger the event system. By using the event system of the XMEGA
+events like the start of an ADC measurement can be started. So more than one event can be
+triggered by one interrupt and it gives additional flexibility. It’s not necessary in this
+code, but I used it nevertheless. The following lines configure the event system:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; EVSYS.CH3MUX = EVSYS_CHMUX_TCC4_CCA_gc;  //Connect TCC4 Compare interrupt to event channel 3 (used to trigger ADC)
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; tc45_set_resolution(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;TIMER_SENS, TIMER_SENS_RESOLUTION);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;Please note&lt;/strong&gt;, that several config files, typically named &lt;code&gt;conf/&amp;lt;modulname&amp;gt;_config.h&lt;/code&gt; are used
+to parameterize the modules on startup. These are used by the modules init functions.&lt;/p&gt;
+
+&lt;h3 id=&quot;analog-digital-converter&quot;&gt;Analog-Digital-Converter&lt;/h3&gt;
+&lt;p&gt;The heart of the sensor is the Allegro hall sensor converting a current up to 100 Amps (or
+even up to 200A with another version) to an almost linear voltage and the XMEGA analog to
+digital converter. The XMEGA ADC can convert a voltage range between GND and around 2V to
+a 12Bit value in single-ended unsigned mode. This will be reduced by using a signed mode
+(for negative voltages) or an external voltage reverence. Using the 12Bit the least 
+significant bit represents 0.4899mV.&lt;/p&gt;
+
+&lt;p&gt;The Allegro outputs 396 to 410 mV by 0mA current up to nearly 3.1V at 100A. So we have 
+to transfer this range to the max of 2.048V of the external voltage reference or the internal
+voltage reference of Vcc/1.6 = 2.063V. This is done by a voltage divider of 3K to 4.7K Ohm.&lt;/p&gt;
+
+&lt;p&gt;The ADC gets initialized in &lt;code&gt;adc_init()&lt;/code&gt;. There is the ADC port and an ADC channel. The used
+XMEGA has only one ADC port and one channel. Multiple channels would allow for parallel
+measurements. This would have been nice for measuring the current and voltage simultaneously.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Setup&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Setting up the ADC:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; adc_set_conversion_parameters(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;adc_conf, ADC_SIGN_OFF,ADC_RES_MT12 , ADC_REF_VCC);  // ADC_RES_12&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Sets the unsigned mode with 12Bit resolution and the internal Vcc as VREF.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; adc_set_conversion_trigger(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;adc_conf, ADC_TRIG_EVENT_SYNCSWEEP,1, 3 );
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; adc_set_clock_rate(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;adc_conf, ADC_CLOCK); // ADC clock 1.8MHz&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Sets the trigger to an event and specifies the ADC clock rate. Higher clock rates allow for
+faster measurements, slower is more precise. I use a fast setting to be save.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; adc_set_callback(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;ADC_MAIN, *adc_cur_callback);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Callback function called when the measurement is finished. The time of a measurement is 
+calculated by the number of result bits (at least one clock cycle per bit) and some time 
+to transfer the result to the result register.  &lt;/p&gt;
+
+&lt;p&gt;To use different pins for ADC probes, the ADC channnel needs to be reconfigured. So there
+are two functions to set up the channel. The &lt;code&gt;adcch_set_cur_measure()&lt;/code&gt; for current and
+&lt;code&gt;adcch_set_volt_measure()&lt;/code&gt; for the main battery voltage measurement. The difference is, that
+the current measurement works with an interrupt firing after the result is there, while
+the voltage measurement gets started and then checked (blocking in a while loop) for the
+result.&lt;/p&gt;
+
+&lt;p&gt;Setting up the ADC channel:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; adcch_set_input(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;adcch_conf, ADC_MAIN_CURRENT_PIN, ADCCH_NEG_NONE, 1);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This sets the pin for measuring, the negative pin which is not used here and gain (not used here).&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; adcch_enable_averaging(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;adcch_conf, ADC_CUR_AVERAG_SAMP);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;I enabled the averaging function of the XMEGA32E5 taking 4 samples and returning the average
+of these.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; adcch_set_interrupt_mode(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;adcch_conf, ADCCH_MODE_COMPLETE); //complete conversion
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; adcch_enable_interrupt(&lt;span class=&quot;ni&quot;&gt;&amp;amp;adcch_conf);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Configures the channel interrupt to fire when the analog to digital conversion is completed.
+The callback function is taken from the ADC setup.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;The callback function&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;If the ADC conversion is completed, the callback function is called:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; static void adc_cur_callback(ADC_t *adc, uint8_t ch_mask, adc_result_t res) {
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; 	cur_mea_val = res;
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; 	act = !act;
+&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; 	time[act] = rtc_get_time();
+&lt;span class=&quot;lineno&quot;&gt;5&lt;/span&gt; 	
+&lt;span class=&quot;lineno&quot;&gt;6&lt;/span&gt; 	measure_cycle = true;	
+&lt;span class=&quot;lineno&quot;&gt;7&lt;/span&gt; }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Since this XMEGA provides only one channel, the channel mask parameter will alway be the same.
+The result is saved to the &lt;code&gt;cur_mea_val&lt;/code&gt; global variable. Then the actual time is saved
+to &lt;code&gt;time[act]&lt;/code&gt;. This is switched each measure cycle to have the actual and latest measurement
+time for the capacity calculation. The measure_cycle = true is set to signalize the main
+loop that a new result is available.&lt;/p&gt;
+
+&lt;p&gt;I will cover the main calculations in the next part!&lt;/p&gt;
+
+  &lt;p&gt;&lt;a href=&quot;/articles/Software_part_1&quot;&gt;Firmware Part 1&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on December 23, 2014.&lt;/p&gt;</content>
+</entry>
+
+
+<entry>
   <title type="html"><![CDATA[Hardware assembly]]></title>
-  <link rel="alternate" type="text/html" href="/articles/Hardware%20assembly" />
-  <id>/articles/Hardware assembly</id>
+  <link rel="alternate" type="text/html" href="/articles/Hardware_assembly" />
+  <id>/articles/Hardware_assembly</id>
   <published>2014-12-22T00:00:00+01:00</published>
   <updated>2014-12-22T00:00:00+01:00</updated>
   <author>
@@ -146,7 +319,7 @@ low pass filter (thanks to Ingo on the rc-heli.de forum). Additional cell voltag
 would be nice as well.  &lt;/p&gt;
 
 
-  &lt;p&gt;&lt;a href=&quot;/articles/Hardware%20assembly&quot;&gt;Hardware assembly&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on December 22, 2014.&lt;/p&gt;</content>
+  &lt;p&gt;&lt;a href=&quot;/articles/Hardware_assembly&quot;&gt;Hardware assembly&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on December 22, 2014.&lt;/p&gt;</content>
 </entry>
 
 
@@ -238,8 +411,6 @@ microcontroller and this was the one having a short connection to the ground.&lt
 
 &lt;p&gt;Since I proved everything possible with &lt;code&gt;REV_A&lt;/code&gt; I went on and designed &lt;code&gt;REV_B&lt;/code&gt;. It’s on
 &lt;a href=&quot;https://github.com/csc13/spektel-sensor/tree/master/hardware/REV_B&quot;&gt;GitHub&lt;/a&gt; right now.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;&lt;em&gt;NOTE: The REV_B is not yet tested. So I don’t know if it works!&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
 
 &lt;h3 id=&quot;news-in-revb&quot;&gt;News in REV_B&lt;/h3&gt;
 

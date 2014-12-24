@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Firmware Part 1 &#8211; spektel-sensor</title>
+<meta name="description" content="Start with the Software">
+<meta name="keywords" content="Atmel, AVR, microcontroller, XMEGA, XMEGA32E5, firmware">
+
+
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Firmware Part 1 &#8211; spektel-sensor">
+<meta property="og:description" content="Start with the Software">
+<meta property="og:url" content="/articles/Software_part_1">
+<meta property="og:site_name" content="spektel-sensor">
+
+
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="spektel-sensor Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Type -->
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Crimson+Text:400,400italic,700,700italic" rel='stylesheet' type='text/css' />
+<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="/assets/css/entypo.css" media="all">
+
+<!-- In order to use Calendas Plus, you must first purchase it. Then, create a font-face package using FontSquirrel.
+<link rel='stylesheet' href='/assets/cal.css' media='all' />
+-->
+
+
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/i.css">
+
+<!-- Fresh Squeezed jQuery -->
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- Load Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.6.2.custom.min.js"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<link rel="shortcut icon" href="/favicon.ico">
+
+<div id="bump">
+  <body class="">
+    <header class="site-header">
+      <div class="wrap">
+        <hgroup>
+          <h1><a href="/">spektel-sensor</a></h1>
+        </hgroup>
+        <a href="#nav" class="menu"><span class='icons'>☰</span></a>
+        <nav role="navigation">
+          <ul>
+            <li>
+              <a href="/" title="spektel-sensor">Home</a>
+            </li>
+            
+            
+                <li><a href="/about" >About</a></li>
+            
+                <li><a href="https://github.com/csc13/spektel-sensor" target="_blank">Github</a></li>
+            
+
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+
+<section class="article">
+
+
+  <div class="overlay"></div>
+  <div class="featured-image" style="background-image: url(/images/Board_REV_B.jpg)"></div>
+
+
+
+      <article class="wrap post">
+        <header class="post-header">
+          <hgroup>
+            <h1>Firmware Part 1</h1>
+            <p class="date">Dec 23, 2014</p>
+            <p class="intro">Start with the Software</p>
+          </hgroup>
+        </header>
+    
+        <p>After the board is assembled and working it is time to move to the software part. As
+mentioned earlier, most of the magic is in the code. This post is intended to help to
+understand the source code of the sensor firmware.</p>
+
+<p>This is not a C or Atmel Studio tutorial. It will suite programmers, who know basic C (or
+C style programming) and move to the XMEGA development. Although the Atmel datasheet is our
+friend and the basis of the code I will not go into the XMEGA details.
+I’m just not expert enough up to now to do so.</p>
+
+<h3 id="testing-the-board">Testing the board</h3>
+<p>The “Hello world!” in the µC world is a blink. The board has two LEDs to do some blinking
+and see if the code uploads without problem. Whenever you get stuck it’s time to reassure
+the basic functions. A Todo would be to provide some basic testing code. Maybe by pressing
+the button, the sensor can run some test, blink the LEDs, send some test data to the transmitter.</p>
+
+<h3 id="development-process">Development process</h3>
+<p>I use the Atmel studio 6 with the ASF framework. The ASF wizard helps to specify the
+required libraries based on the cpu modules and functions you want to use. By setting up 
+the right device (the ATXMEGA32E5) and a custom board it selects the correct pin and register
+definitions.
+After writing the code, it needs to be compiled in an .elf file containing the machine code.
+Using the programming tool in AVR Studio the flash memory gets erased and rewritten. The
+µC resets and starts to run the new code.</p>
+
+<p>A debugger seems very useful, but I didn’t use it much. In most environments a debugger
+affects the runtime, at least it corrupts the timing. I don’t know the effects for
+XMEGA debugging at the moment.</p>
+
+<h3 id="basic-architecture-of-the-firmware">Basic architecture of the firmware</h3>
+<p>The software consist of three main blocks:</p>
+
+<p>A.) The classic <code>while(1){...}</code> in the <code>main()</code> function doing most of the calculation. After
+entering the infinit while loop the <code>sleepmanager</code>is called and goes to sleep, until it
+gets a wake up call by block B (an additional global variable is used to assure only block B
+can trigger main measurement). The calculated measurements are written to block C.</p>
+
+<p>B.) A timer to trigger the main ADC measuring the current using the Allegro hall sensor.
+The ADC is coupled to the timer by the event system. After the measurement is finished, an
+interrupt is fired reading the result und waking up block A from the sleep mode.</p>
+
+<p>C.) This block serves the X-Bus requests from the Spektrum TM1000 telemetry module. This
+block is triggered by a TWI/I2C interrupt and just uses the values provided by block B 
+and transmits them to the telemetry module.</p>
+
+<p>So we have two interrupt sources, the main measurement timer and the X-Bus interrupts. The
+first triggers the measurements and calculations. The X-Bus trigger grabs the data and
+sends it out. Now we go through the programm flow starting with the timer trigger of block
+B. </p>
+
+<h3 id="triggered-by-a-timer">Triggered by a timer</h3>
+<p>A timer is a module, which can fire events after a defined number of clock cycle counts 
+or when the counter register gets an overflow. The XMEGA can be clocked up to 32MHz, this
+are 32 million counts per second, if not using any prescaler. A prescaler can divide the
+clock rate by a binary factor (2,4,8,16, etc.) for longer intervals. By counting the 
+overflows in a second register timers can be used for longer times, than the overflow time.</p>
+
+<p>The basic trigger of the sensor is a timer at 25 or 50Hz firing an event every 40 or 20ms.
+Both settings work without problems. To get the right time, many parameters needs to be
+considered. If the time is to long, the measurement may be to rough for a good capacity
+calculation. If the time is to short, the ADC measurement and calculations may be interrupted
+by the next cycle. ADCs need some time for precise results. The <code>tc_init()</code> function
+initializes the timer with 3 interrupts. The <code>error_interrupt</code> catches errors in the timer
+system and lights the red LED. the <code>overflow_interrupt</code> restarts the timer. The <code>cca_interrupt</code>
+is the one we are interested in this case. It is set to fire at half the timer period. Maybe
+for clarity I could have changed the code to just use the <code>overflow_interrupt</code>. This would
+have the same effect in this case. </p>
+
+<p>The timer event is used to trigger the event system. By using the event system of the XMEGA
+events like the start of an ADC measurement can be started. So more than one event can be
+triggered by one interrupt and it gives additional flexibility. It’s not necessary in this
+code, but I used it nevertheless. The following lines configure the event system:</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> EVSYS.CH3MUX = EVSYS_CHMUX_TCC4_CCA_gc;  //Connect TCC4 Compare interrupt to event channel 3 (used to trigger ADC)
+<span class="lineno">2</span> tc45_set_resolution(<span class="err">&amp;</span>TIMER_SENS, TIMER_SENS_RESOLUTION);</code></pre></div>
+
+<p><strong>Please note</strong>, that several config files, typically named <code>conf/&lt;modulname&gt;_config.h</code> are used
+to parameterize the modules on startup. These are used by the modules init functions.</p>
+
+<h3 id="analog-digital-converter">Analog-Digital-Converter</h3>
+<p>The heart of the sensor is the Allegro hall sensor converting a current up to 100 Amps (or
+even up to 200A with another version) to an almost linear voltage and the XMEGA analog to
+digital converter. The XMEGA ADC can convert a voltage range between GND and around 2V to
+a 12Bit value in single-ended unsigned mode. This will be reduced by using a signed mode
+(for negative voltages) or an external voltage reverence. Using the 12Bit the least 
+significant bit represents 0.4899mV.</p>
+
+<p>The Allegro outputs 396 to 410 mV by 0mA current up to nearly 3.1V at 100A. So we have 
+to transfer this range to the max of 2.048V of the external voltage reference or the internal
+voltage reference of Vcc/1.6 = 2.063V. This is done by a voltage divider of 3K to 4.7K Ohm.</p>
+
+<p>The ADC gets initialized in <code>adc_init()</code>. There is the ADC port and an ADC channel. The used
+XMEGA has only one ADC port and one channel. Multiple channels would allow for parallel
+measurements. This would have been nice for measuring the current and voltage simultaneously.</p>
+
+<p><strong>Setup</strong></p>
+
+<p>Setting up the ADC:</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> adc_set_conversion_parameters(<span class="err">&amp;</span>adc_conf, ADC_SIGN_OFF,ADC_RES_MT12 , ADC_REF_VCC);  // ADC_RES_12</code></pre></div>
+
+<p>Sets the unsigned mode with 12Bit resolution and the internal Vcc as VREF.</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> adc_set_conversion_trigger(<span class="err">&amp;</span>adc_conf, ADC_TRIG_EVENT_SYNCSWEEP,1, 3 );
+<span class="lineno">2</span> adc_set_clock_rate(<span class="err">&amp;</span>adc_conf, ADC_CLOCK); // ADC clock 1.8MHz</code></pre></div>
+
+<p>Sets the trigger to an event and specifies the ADC clock rate. Higher clock rates allow for
+faster measurements, slower is more precise. I use a fast setting to be save.</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> adc_set_callback(<span class="err">&amp;</span>ADC_MAIN, *adc_cur_callback);</code></pre></div>
+
+<p>Callback function called when the measurement is finished. The time of a measurement is 
+calculated by the number of result bits (at least one clock cycle per bit) and some time 
+to transfer the result to the result register.  </p>
+
+<p>To use different pins for ADC probes, the ADC channnel needs to be reconfigured. So there
+are two functions to set up the channel. The <code>adcch_set_cur_measure()</code> for current and
+<code>adcch_set_volt_measure()</code> for the main battery voltage measurement. The difference is, that
+the current measurement works with an interrupt firing after the result is there, while
+the voltage measurement gets started and then checked (blocking in a while loop) for the
+result.</p>
+
+<p>Setting up the ADC channel:</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> adcch_set_input(<span class="err">&amp;</span>adcch_conf, ADC_MAIN_CURRENT_PIN, ADCCH_NEG_NONE, 1);</code></pre></div>
+
+<p>This sets the pin for measuring, the negative pin which is not used here and gain (not used here).</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> adcch_enable_averaging(<span class="err">&amp;</span>adcch_conf, ADC_CUR_AVERAG_SAMP);</code></pre></div>
+
+<p>I enabled the averaging function of the XMEGA32E5 taking 4 samples and returning the average
+of these.</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> adcch_set_interrupt_mode(<span class="err">&amp;</span>adcch_conf, ADCCH_MODE_COMPLETE); //complete conversion
+<span class="lineno">2</span> adcch_enable_interrupt(<span class="ni">&amp;adcch_conf);</span></code></pre></div>
+
+<p>Configures the channel interrupt to fire when the analog to digital conversion is completed.
+The callback function is taken from the ADC setup.</p>
+
+<p><strong>The callback function</strong></p>
+
+<p>If the ADC conversion is completed, the callback function is called:</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> static void adc_cur_callback(ADC_t *adc, uint8_t ch_mask, adc_result_t res) {
+<span class="lineno">2</span> 	cur_mea_val = res;
+<span class="lineno">3</span> 	act = !act;
+<span class="lineno">4</span> 	time[act] = rtc_get_time();
+<span class="lineno">5</span> 	
+<span class="lineno">6</span> 	measure_cycle = true;	
+<span class="lineno">7</span> }</code></pre></div>
+
+<p>Since this XMEGA provides only one channel, the channel mask parameter will alway be the same.
+The result is saved to the <code>cur_mea_val</code> global variable. Then the actual time is saved
+to <code>time[act]</code>. This is switched each measure cycle to have the actual and latest measurement
+time for the capacity calculation. The measure_cycle = true is set to signalize the main
+loop that a new result is available.</p>
+
+<p>I will cover the main calculations in the next part!</p>
+
+          
+      <a class="share" href="https://twitter.com/intent/tweet?text=&quot;Firmware Part 1&quot;%20%20via%20&#64;" data-dnt="true">Share</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+      
+
+
+      </article>
+
+    </section>
+</div>
+
+<div class="push"></div>
+  <footer>
+    <aside class="wrap">
+      <ol class="prev-posts">
+        <p class="list-title">Recent Posts</p>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/Software_part_1" title="Firmware Part 1">Firmware Part 1 </a></span>
+              <span class="date">Dec 23, 2014</span>
+            </li>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/Hardware_assembly" title="Hardware assembly">Hardware assembly </a></span>
+              <span class="date">Dec 22, 2014</span>
+            </li>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/xmega" title="XMEGA32E5">XMEGA32E5 </a></span>
+              <span class="date">Nov 26, 2014</span>
+            </li>
+        
+      </ol>
+      
+      <div class="social">
+        <ul>
+            <li><a id="mail" href="mailto:git@cescholz.de"><span class="foot-link">Contact Me</span></a></li>
+            
+            
+            
+            
+            
+        </ul>
+    </div>
+    </aside>
+    <small>&copy; 2014 Christian. Powered by <a href="http://jekyllrb.com">Jekyll</a> using the <a href="http://jekyll.gtat.me/about">Balzac</a> theme.</small>
+  </footer>
+
+  <!-- If they're out, get some from the cellar -->
+  <script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+  <script src="/assets/js/retina.min.js"></script>
+
+  <!-- Custom JS -->
+  <script src="/assets/js/scripts.js"></script>
+  
+
+  </body>
+</html>
