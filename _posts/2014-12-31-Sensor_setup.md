@@ -75,6 +75,17 @@ Since the capacity in the Spektrum X-Bus protocol uses a 16Bit
 variable, the maximum is 65535mAh. For program simplicity the maximum battery capacity
 is now limited to 50.000mAh, which should be good enough for most RC use cases.
 
+###Hook up diagramm
+Since I have not given a hook up guide, I will provide a small sketch to see the basic
+installation. To measure the main battery voltage, there needs to be a ground connection
+between the sensor and the main battery negative pole. This is normally given by the BEC
+system in the electronic speed controller. If not you need to wire an additional connection.
+
+<figure>
+	<img src="/images/hook_up_diagram_REV_B.png">
+	<figcaption>Hook up diagram</figcaption>
+</figure>
+
 ###Outlook
 The serial port was intended to provide more sophisticated options for setting up
 the sensor. Using a terminal program and a kind of AT commands this can be easily achieved.
