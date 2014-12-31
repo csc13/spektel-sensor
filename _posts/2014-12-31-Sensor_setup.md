@@ -65,11 +65,15 @@ will loop through the thousands digit from 0 to 9. If the right number is displa
 button until the red LED lights up again. Now the same process starts for the ten thousands
 digit, but only from 0 to 5. Press the button until the red LED lights up.
 
-###Finish
 If the value is saved successfully to the EEPROM, the red LED goes out again. The sensor
 can be used right away and will reload the stored capacity value on the next power up.
 
-To stop the setup process in between, cut the power of the sensor. 
+**To stop the setup process in between, cut the power of the sensor!**
+
+###Restrictions
+I implemented the setup function using a simple way. There are no interrupts, no debounce
+of the button, etc. So you need to watch to the LED and release the button after the
+red light changes.
 
 Since the capacity in the Spektrum X-Bus protocol uses a 16Bit
 variable, the maximum is 65535mAh. For program simplicity the maximum battery capacity
