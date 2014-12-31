@@ -73,7 +73,7 @@ can be used right away and will reload the stored capacity value on the next pow
 ###Restrictions
 I implemented the setup function using a simple way. There are no interrupts, no debounce
 of the button, etc. So you need to watch to the LED and release the button after the
-red light changes.
+red light changes. But hey, it is only the setup function, you won't use it every day.
 
 Since the capacity in the Spektrum X-Bus protocol uses a 16Bit
 variable, the maximum is 65535mAh. For program simplicity the maximum battery capacity
