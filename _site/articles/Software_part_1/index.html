@@ -185,8 +185,6 @@ voltage reference of Vcc/1.6 = 2.063V. This is done by a voltage divider of 3K t
 XMEGA has only one ADC port and one channel. Multiple channels would allow for parallel
 measurements. This would have been nice for measuring the current and voltage simultaneously.</p>
 
-<p><strong>Setup</strong></p>
-
 <p>Setting up the ADC:</p>
 
 <div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> adc_set_conversion_parameters(<span class="err">&amp;</span>adc_conf, ADC_SIGN_OFF,ADC_RES_MT12 , ADC_REF_VCC);  // ADC_RES_12</code></pre></div>
@@ -229,8 +227,6 @@ of these.</p>
 <p>Configures the channel interrupt to fire when the analog to digital conversion is completed.
 The callback function is taken from the ADC setup.</p>
 
-<p><strong>The callback function</strong></p>
-
 <p>If the ADC conversion is completed, the callback function is called:</p>
 
 <div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> static void adc_cur_callback(ADC_t *adc, uint8_t ch_mask, adc_result_t res) {
@@ -268,6 +264,11 @@ loop that a new result is available.</p>
         <p class="list-title">Recent Posts</p>
          <!-- for1 -->
             <li>
+              <span class="recent-title"><a href="/articles/Sensor_setup" title="Sensor setup">Sensor setup </a></span>
+              <span class="date">Dec 31, 2014</span>
+            </li>
+         <!-- for1 -->
+            <li>
               <span class="recent-title"><a href="/articles/Software_part_1" title="Firmware Part 1">Firmware Part 1 </a></span>
               <span class="date">Dec 23, 2014</span>
             </li>
@@ -275,11 +276,6 @@ loop that a new result is available.</p>
             <li>
               <span class="recent-title"><a href="/articles/Hardware_assembly" title="Hardware assembly">Hardware assembly </a></span>
               <span class="date">Dec 22, 2014</span>
-            </li>
-         <!-- for1 -->
-            <li>
-              <span class="recent-title"><a href="/articles/xmega" title="XMEGA32E5">XMEGA32E5 </a></span>
-              <span class="date">Nov 26, 2014</span>
             </li>
         
       </ol>

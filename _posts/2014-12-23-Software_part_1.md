@@ -104,8 +104,6 @@ The ADC gets initialized in `adc_init()`. There is the ADC port and an ADC chann
 XMEGA has only one ADC port and one channel. Multiple channels would allow for parallel
 measurements. This would have been nice for measuring the current and voltage simultaneously.
 
-**Setup**
-
 Setting up the ADC:
 {% highlight html linenos %}
 adc_set_conversion_parameters(&adc_conf, ADC_SIGN_OFF,ADC_RES_MT12 , ADC_REF_VCC);  // ADC_RES_12
@@ -152,8 +150,6 @@ adcch_enable_interrupt(&adcch_conf);
 {% endhighlight %}
 Configures the channel interrupt to fire when the analog to digital conversion is completed.
 The callback function is taken from the ADC setup.
-
-**The callback function**
 
 If the ADC conversion is completed, the callback function is called:
 

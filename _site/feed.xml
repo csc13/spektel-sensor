@@ -5,13 +5,101 @@
 <generator uri="https://github.com/mojombo/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2014-12-24T16:13:01+01:00</updated>
+<updated>2014-12-31T01:37:33+01:00</updated>
 <id>/</id>
 <author>
   <name>Christian</name>
   <uri>/</uri>
   <email>git@cescholz.de</email>
 </author>
+
+
+<entry>
+  <title type="html"><![CDATA[Sensor setup]]></title>
+  <link rel="alternate" type="text/html" href="/articles/Sensor_setup" />
+  <id>/articles/Sensor_setup</id>
+  <published>2014-12-31T00:00:00+01:00</published>
+  <updated>2014-12-31T00:00:00+01:00</updated>
+  <author>
+    <name>Christian</name>
+    <uri></uri>
+    <email>git@cescholz.de</email>
+  </author>
+  <content type="html">&lt;p&gt;The sensor firmware can be used with different configurations. Basically the firmeware should
+be able to support different revisions of the sensor, several assembly options and be configurable
+to different models and flight situations.&lt;/p&gt;
+
+&lt;h3 id=&quot;assembly-options&quot;&gt;Assembly options&lt;/h3&gt;
+
+&lt;p&gt;REV_B as the actual sensor can be assembled with different component options. The 
+&lt;code&gt;Allegro ACS758LCB-100U-PFF-T&lt;/code&gt; is as well available in a 50A and 200A version. 
+This indicates the maximum measurement range of the hall sensor, while
+it can take a current many times higher without damage. But using the 50A version
+will give double the precision than the 100A version.&lt;/p&gt;
+
+&lt;p&gt;By changing the resistors (R7 and R8) of the voltage divider for the voltage measurement,
+batteries with more than 6 cells can be supported as well as higher precision for less cells
+can be enabled.&lt;/p&gt;
+
+&lt;p&gt;Another option is to omit the &lt;code&gt;Bosch BMP180&lt;/code&gt; pressure sensor, if the altimeter and vario
+functions are not needed. Unused connectors can be cut out as well.&lt;/p&gt;
+
+&lt;h3 id=&quot;firmeware-setup&quot;&gt;Firmeware setup&lt;/h3&gt;
+&lt;p&gt;One basic requirement is to setup the capacity of the used battery for the alarm.&lt;/p&gt;
+
+&lt;p&gt;While it is no problem to setup the sensor using the development environment, a target of
+the project was to provide setup methods not requiring a development environment. The
+hardware offers two general possibilities. One option is to use the &lt;code&gt;Serial port&lt;/code&gt; via a
+Serial-USB adaptor or a PC independent setup box. The second is to use the build
+in button. The latter method can only provide basic setup functions.&lt;/p&gt;
+
+&lt;h3 id=&quot;setup-parameters&quot;&gt;Setup parameters&lt;/h3&gt;
+&lt;p&gt;Here is a list of useful setup parameters:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Capacity of the sensor in mAh&lt;/li&gt;
+  &lt;li&gt;Alarm threshold at a minimum capacity (in mAh) or as a percentage left of the max capacity (in %)&lt;/li&gt;
+  &lt;li&gt;An optional second alarm threshold for the capacity (as the Powerbox sensor has two capacity alarms&lt;/li&gt;
+  &lt;li&gt;A voltage threshold for the main battery voltage (in mV) or,&lt;/li&gt;
+  &lt;li&gt;The number of cells used and a calculated minimum voltage of the pack&lt;/li&gt;
+  &lt;li&gt;The hight of the airfield (in m), useful, if the flight can go below the airfield (in the mountains)&lt;/li&gt;
+  &lt;li&gt;Several calibration parameters to adjust the sensor to the used components&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;setup-on-the-airfield&quot;&gt;Setup on the airfield&lt;/h3&gt;
+&lt;p&gt;The setup method for the airfield using the sensors button, allows only for setting up
+the &lt;strong&gt;Capacity of the battery in mAh&lt;/strong&gt;. The alarm (Cap1 alarm) will be activated, if the 
+calculated capacity falls under 20% of this value.&lt;/p&gt;
+
+&lt;p&gt;For the setup start the transmitter with the model setup bound to the receiver used and the
+Powerbox telemetry sensor activated. Now hold the button on the bottom side (backside of 
+the XMEGA) pressed while powering the sensor. Note that the power for the sensor comes 
+via the X-Bus, TM1000 and receiver from the receiver battery or BEC. The sensor will 
+indicate the setup mode by blinking three times both LEDs. Release the button after the
+first blinking of both LEDs.&lt;/p&gt;
+
+&lt;p&gt;Now the Cap1 display will count up by one hundred each second starting by zero again. If
+the desired number is displayed press the button until the red LED goes out. Now the display
+will loop through the thousands digit from 0 to 9. If the right number is displayed press the
+button until the red LED lights up again. Now the same process starts for the ten thousands
+digit, but only from 0 to 5. Press the button until the red LED lights up.&lt;/p&gt;
+
+&lt;h3 id=&quot;finish&quot;&gt;Finish&lt;/h3&gt;
+&lt;p&gt;If the value is saved successfully to the EEPROM, the red LED goes out again. The sensor
+can be used right away and will reload the stored capacity value on the next power up.&lt;/p&gt;
+
+&lt;p&gt;To stop the setup process in between, cut the power of the sensor. &lt;/p&gt;
+
+&lt;p&gt;Since the capacity in the Spektrum X-Bus protocol uses a 16Bit
+variable, the maximum is 65535mAh. For program simplicity the maximum battery capacity
+is now limited to 50.000mAh, which should be good enough for most RC use cases.&lt;/p&gt;
+
+&lt;h3 id=&quot;outlook&quot;&gt;Outlook&lt;/h3&gt;
+&lt;p&gt;The serial port was intended to provide more sophisticated options for setting up
+the sensor. Using a terminal program and a kind of AT commands this can be easily achieved.&lt;/p&gt;
+
+  &lt;p&gt;&lt;a href=&quot;/articles/Sensor_setup&quot;&gt;Sensor setup&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on December 31, 2014.&lt;/p&gt;</content>
+</entry>
 
 
 <entry>
@@ -119,8 +207,6 @@ voltage reference of Vcc/1.6 = 2.063V. This is done by a voltage divider of 3K t
 XMEGA has only one ADC port and one channel. Multiple channels would allow for parallel
 measurements. This would have been nice for measuring the current and voltage simultaneously.&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;Setup&lt;/strong&gt;&lt;/p&gt;
-
 &lt;p&gt;Setting up the ADC:&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; adc_set_conversion_parameters(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;adc_conf, ADC_SIGN_OFF,ADC_RES_MT12 , ADC_REF_VCC);  // ADC_RES_12&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
@@ -162,8 +248,6 @@ of these.&lt;/p&gt;
 
 &lt;p&gt;Configures the channel interrupt to fire when the analog to digital conversion is completed.
 The callback function is taken from the ADC setup.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;The callback function&lt;/strong&gt;&lt;/p&gt;
 
 &lt;p&gt;If the ADC conversion is completed, the callback function is called:&lt;/p&gt;
 
