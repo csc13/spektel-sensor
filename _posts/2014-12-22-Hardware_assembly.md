@@ -121,6 +121,31 @@ can be soldered.
 	<figcaption>Assembled REV_B bottom side</figcaption>
 </figure>
 
+The I2C / TWI bus used to connect the Bosch BMP180 pressure sensor has two pull-up resistors.
+I tried to be smarter than the datasheet and put 2.7K in. It turned out, that they are two
+small to drive the SDA and SCL lines to GND fast enough. So use 4.7K for R4 and 
+R5 instead.
+
+I got myself a Saleae Logic8 logic analyser. Why it is probably not the most needed tool,
+in this case it helps a lot. And it brings analog monitoring functionality as well. From the
+signal shape below I figured out that something goes wrong. The XMEGA trys to pull down the 
+signal resulting in a slow drop of the signal voltage.
+
+<figure>
+	<img src="/images/saleae_logic_i2c_bmp180_faulty.jpg">
+	<figcaption>Monitoring the I2C bus to the BMP180</figcaption>
+</figure>
+
+It has to look this way. The sequence just reads the static device ID for test purposes.
+
+<figure>
+	<img src="/images/saleae_logic_i2c_bmp180.jpg">
+	<figcaption>Monitoring the I2C bus to the BMP180</figcaption>
+</figure>
+
+
+
+
 ###Outlook
 In future versions, a small capacitor at the Allegro signal pin can serve as a hardware 
 low pass filter (thanks to Ingo on the rc-heli.de forum). Additional cell voltage measurements

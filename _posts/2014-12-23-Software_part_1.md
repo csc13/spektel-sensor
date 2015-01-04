@@ -14,8 +14,12 @@ understand the source code of the sensor firmware.
 
 This is not a C or Atmel Studio tutorial. It will suite programmers, who know basic C (or
 C style programming) and move to the XMEGA development. Although the Atmel datasheet is our
-friend and the basis of the code I will not go into the XMEGA details.
-I'm just not expert enough up to now to do so.
+friend and the basis of the code I will not go into the XMEGA details. I'm just not expert 
+enough up to now to do so.
+
+Download the XMEGA datasheet and manual from the [Atmel](http://www.atmel.com) website. 
+The datasheet covers the specialities of the `ATXMEGA32E5` while the manual is the same
+for all XMEGAs and provides a deep look in each hardware module.
 
 ###Testing the board
 The "Hello world!" in the µC world is a blink. The board has two LEDs to do some blinking

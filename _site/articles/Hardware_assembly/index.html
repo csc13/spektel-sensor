@@ -206,6 +206,28 @@ can be soldered.</p>
 	<figcaption>Assembled REV_B bottom side</figcaption>
 </figure>
 
+<p>The I2C / TWI bus used to connect the Bosch BMP180 pressure sensor has two pull-up resistors.
+I tried to be smarter than the datasheet and put 2.7K in. It turned out, that they are two
+small to drive the SDA and SCL lines to GND fast enough. So use 4.7K for R4 and 
+R5 instead.</p>
+
+<p>I got myself a Saleae Logic8 logic analyser. Why it is probably not the most needed tool,
+in this case it helps a lot. And it brings analog monitoring functionality as well. From the
+signal shape below I figured out that something goes wrong. The XMEGA trys to pull down the 
+signal resulting in a slow drop of the signal voltage.</p>
+
+<figure>
+	<img src="/images/saleae_logic_i2c_bmp180_faulty.jpg" />
+	<figcaption>Monitoring the I2C bus to the BMP180</figcaption>
+</figure>
+
+<p>It has to look this way. The sequence just reads the static device ID for test purposes.</p>
+
+<figure>
+	<img src="/images/saleae_logic_i2c_bmp180.jpg" />
+	<figcaption>Monitoring the I2C bus to the BMP180</figcaption>
+</figure>
+
 <h3 id="outlook">Outlook</h3>
 <p>In future versions, a small capacitor at the Allegro signal pin can serve as a hardware 
 low pass filter (thanks to Ingo on the rc-heli.de forum). Additional cell voltage measurements
@@ -231,6 +253,11 @@ would be nice as well.  </p>
         <p class="list-title">Recent Posts</p>
          <!-- for1 -->
             <li>
+              <span class="recent-title"><a href="/articles/XMEGA_ASF_TWI" title="XMEGA, ASF and TWI/I2C">XMEGA, ASF and TWI/I2C </a></span>
+              <span class="date">Jan 03, 2015</span>
+            </li>
+         <!-- for1 -->
+            <li>
               <span class="recent-title"><a href="/articles/Sensor_setup" title="Sensor setup">Sensor setup </a></span>
               <span class="date">Dec 31, 2014</span>
             </li>
@@ -238,11 +265,6 @@ would be nice as well.  </p>
             <li>
               <span class="recent-title"><a href="/articles/Software_part_1" title="Firmware Part 1">Firmware Part 1 </a></span>
               <span class="date">Dec 23, 2014</span>
-            </li>
-         <!-- for1 -->
-            <li>
-              <span class="recent-title"><a href="/articles/Hardware_assembly" title="Hardware assembly">Hardware assembly </a></span>
-              <span class="date">Dec 22, 2014</span>
             </li>
         
       </ol>
@@ -258,7 +280,7 @@ would be nice as well.  </p>
         </ul>
     </div>
     </aside>
-    <small>&copy; 2014 Christian. Powered by <a href="http://jekyllrb.com">Jekyll</a> using the <a href="http://jekyll.gtat.me/about">Balzac</a> theme.</small>
+    <small>&copy; 2015 Christian. Powered by <a href="http://jekyllrb.com">Jekyll</a> using the <a href="http://jekyll.gtat.me/about">Balzac</a> theme.</small>
   </footer>
 
   <!-- If they're out, get some from the cellar -->

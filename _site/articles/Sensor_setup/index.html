@@ -150,11 +150,15 @@ will loop through the thousands digit from 0 to 9. If the right number is displa
 button until the red LED lights up again. Now the same process starts for the ten thousands
 digit, but only from 0 to 5. Press the button until the red LED lights up.</p>
 
-<h3 id="finish">Finish</h3>
 <p>If the value is saved successfully to the EEPROM, the red LED goes out again. The sensor
 can be used right away and will reload the stored capacity value on the next power up.</p>
 
-<p>To stop the setup process in between, cut the power of the sensor. </p>
+<p><strong>To stop the setup process in between, cut the power of the sensor!</strong></p>
+
+<h3 id="restrictions">Restrictions</h3>
+<p>I implemented the setup function using a simple way. There are no interrupts, no debounce
+of the button, etc. So you need to watch to the LED and release the button after the
+red light changes. But hey, it is only the setup function, you won’t use it every day.</p>
 
 <p>Since the capacity in the Spektrum X-Bus protocol uses a 16Bit
 variable, the maximum is 65535mAh. For program simplicity the maximum battery capacity
@@ -194,6 +198,11 @@ the sensor. Using a terminal program and a kind of AT commands this can be easil
         <p class="list-title">Recent Posts</p>
          <!-- for1 -->
             <li>
+              <span class="recent-title"><a href="/articles/XMEGA_ASF_TWI" title="XMEGA, ASF and TWI/I2C">XMEGA, ASF and TWI/I2C </a></span>
+              <span class="date">Jan 03, 2015</span>
+            </li>
+         <!-- for1 -->
+            <li>
               <span class="recent-title"><a href="/articles/Sensor_setup" title="Sensor setup">Sensor setup </a></span>
               <span class="date">Dec 31, 2014</span>
             </li>
@@ -201,11 +210,6 @@ the sensor. Using a terminal program and a kind of AT commands this can be easil
             <li>
               <span class="recent-title"><a href="/articles/Software_part_1" title="Firmware Part 1">Firmware Part 1 </a></span>
               <span class="date">Dec 23, 2014</span>
-            </li>
-         <!-- for1 -->
-            <li>
-              <span class="recent-title"><a href="/articles/Hardware_assembly" title="Hardware assembly">Hardware assembly </a></span>
-              <span class="date">Dec 22, 2014</span>
             </li>
         
       </ol>
@@ -221,7 +225,7 @@ the sensor. Using a terminal program and a kind of AT commands this can be easil
         </ul>
     </div>
     </aside>
-    <small>&copy; 2014 Christian. Powered by <a href="http://jekyllrb.com">Jekyll</a> using the <a href="http://jekyll.gtat.me/about">Balzac</a> theme.</small>
+    <small>&copy; 2015 Christian. Powered by <a href="http://jekyllrb.com">Jekyll</a> using the <a href="http://jekyll.gtat.me/about">Balzac</a> theme.</small>
   </footer>
 
   <!-- If they're out, get some from the cellar -->

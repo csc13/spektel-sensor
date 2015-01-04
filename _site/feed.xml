@@ -5,13 +5,507 @@
 <generator uri="https://github.com/mojombo/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2014-12-31T02:16:50+01:00</updated>
+<updated>2015-01-04T01:09:54+01:00</updated>
 <id>/</id>
 <author>
   <name>Christian</name>
   <uri>/</uri>
   <email>git@cescholz.de</email>
 </author>
+
+
+<entry>
+  <title type="html"><![CDATA[XMEGA, ASF and TWI/I2C]]></title>
+  <link rel="alternate" type="text/html" href="/articles/XMEGA_ASF_TWI" />
+  <id>/articles/XMEGA_ASF_TWI</id>
+  <published>2015-01-03T00:00:00+01:00</published>
+  <updated>2015-01-03T00:00:00+01:00</updated>
+  <author>
+    <name>Christian</name>
+    <uri></uri>
+    <email>git@cescholz.de</email>
+  </author>
+  <content type="html">&lt;p&gt;One of the main XMEGA features the sensor uses is the I2C (Inter-Integrated Circut) or TWI
+(Two-Wire-Interface) serial data bus. It is used for the &lt;code&gt;Spektrum RC Telemetry X-Bus&lt;/code&gt; as 
+a Slave and for the &lt;code&gt;Bosch BMP180&lt;/code&gt; pressure sensor as a Master. In both cases the XMEGA
+hardware capabilities are used.&lt;/p&gt;
+
+&lt;p&gt;While the first prototyping with an Arduino was quite simple, it took me some time to
+figure things out using the XMEGA and ASF (Atmel Software Framework). In my opinion it is
+because the XMEGA is far less used by makers and hobbyists compared to the ATMEGA series.
+And the ASF functions have some undocumented unexpected behaviour. The main source I used
+have been the XMEGA datasheet and AFS Quickstart examples, which you can find on the Atmel
+website and at the end of some library header files as comments.&lt;/p&gt;
+
+&lt;p&gt;I will try to give an overview, pitfalls and solutions in this article. May it help others
+to save some time.&lt;/p&gt;
+
+&lt;h3 id=&quot;xmega-twi-bridge-mode&quot;&gt;XMEGA TWI Bridge Mode&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;ATXMEGA32E5&lt;/code&gt; offers a feature called Bridge mode. And I didn’t found much help on this.
+If you go to the ATXMEGA32E5 datasheet it lists the following Alternate Pin Functions 
+(in chapter 32.2) for TWI:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;PORT C - PC0 (Pin 16) - SDA&lt;/li&gt;
+  &lt;li&gt;PORT C - PC1 (Pin 15) - SCL&lt;/li&gt;
+  &lt;li&gt;PORT D - PD0 (Pin 28) - SDA (TWID (Bridge))&lt;/li&gt;
+  &lt;li&gt;PORT D - PD1 (Pin 27) - SCL (TWID (Bridge))&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Chapter 22 of the Atmel datasheet gives some more hints:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Bridge mode with independent and simultaneous master and slave operation&lt;/li&gt;
+  &lt;li&gt;Independent timeout counters in master and slave (Bridge mode support)&lt;/li&gt;
+  &lt;li&gt;By using the bridge option, the slave can be mapped to different pin
+locations&lt;/li&gt;
+  &lt;li&gt;The master and slave can support 100kHz, 400kHz and 1MHz bus frequency&lt;/li&gt;
+  &lt;li&gt;It is also possible to enable the bridge mode. In this mode, the slave I/O pins are 
+selected from an alternative port, enabling independent and simultaneous master and slave operation&lt;/li&gt;
+  &lt;li&gt;PORTC has one TWI. Notation of this peripheral is TWIC&lt;/li&gt;
+  &lt;li&gt;Alternative TWI Slave location in bridge mode is on PORTD&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Chapter 18 of the &lt;code&gt;Atmel ATXMEGA Guide&lt;/code&gt; adds the following:&lt;/p&gt;
+
+&lt;p&gt;“When enabling the bridge mode, both master and slave can be active at the same time, each 
+with its specific IO pins. Refer to the device datasheet to see which actual I/O port is 
+used as alternative port selection for the slave in bridge mode.”&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Following this we have to use Port D as TWI slave and PORT C as TWI master.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;So the setup look like the following:
+&lt;code&gt;conf_board.h&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; //Part of conf_board.h
+&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt; // TWIM for BMP180
+&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt; #define TWI_MASTER       TWIC
+&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt; #define TWI_MASTER_PORT  PORTC
+&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt; #define TWI_MASTER_ADDR  0xEF
+&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt; #define TWI_SPEED        1000000
+&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt; 	 
+&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt; // TWIS for XBUS
+&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt; #define TWI_SLAVE        TWIC
+&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; #define TWI_SLAVE_PORT  PORTD&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code&gt;conf_twim.h&lt;/code&gt; looks like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; #define CONF_TWIM_INTLVL        TWI_MASTER_INTLVL_MED_gc
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; #define CONF_PMIC_INTLVL        PMIC_MEDLVLEN_bm&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In the sensor coding, the TWI initialization code is in the &lt;code&gt;spektel.c&lt;/code&gt; file:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; bool spektel_init() { //TWI_t *twis) {
+&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt; // Initialize ports
+&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt; TWI_MASTER_PORT.PIN0CTRL = PORT_OPC_WIREDAND_gc;
+&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt; TWI_MASTER_PORT.PIN1CTRL = PORT_OPC_WIREDAND_gc;
+&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt; irq_initialize_vectors();
+&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt; sysclk_enable_peripheral_clock(&lt;span class=&quot;ni&quot;&gt;&amp;amp;TWI_MASTER);&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; twi_bridge_enable(&lt;span class=&quot;ni&quot;&gt;&amp;amp;TWI_MASTER);&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt; //twi_fast_mode_enable(&lt;span class=&quot;ni&quot;&gt;&amp;amp;TWI_MASTER);&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;12&lt;/span&gt; //twi_slave_fast_mode_enable(&lt;span class=&quot;ni&quot;&gt;&amp;amp;TWI_SLAVE);&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;13&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;14&lt;/span&gt; twi_options_t m_options = {
+&lt;span class=&quot;lineno&quot;&gt;15&lt;/span&gt; 	.speed     = TWI_SPEED,
+&lt;span class=&quot;lineno&quot;&gt;16&lt;/span&gt; 	.chip      = TWI_MASTER_ADDR,
+&lt;span class=&quot;lineno&quot;&gt;17&lt;/span&gt; 	.speed_reg = TWI_BAUD(sysclk_get_cpu_hz(), TWI_SPEED)
+&lt;span class=&quot;lineno&quot;&gt;18&lt;/span&gt; };&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As you can see the bridge mode works without the fast modes.&lt;/p&gt;
+
+&lt;p&gt;Make sure you call &lt;code&gt;sysclk_init();&lt;/code&gt; at the beginning of your code and change &lt;code&gt;conf_clock.h&lt;/code&gt;
+to the desired clock speed.&lt;/p&gt;
+
+&lt;p&gt;Initializing the master:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; status_code = twi_master_init(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;TWI_MASTER, &lt;span class=&quot;ni&quot;&gt;&amp;amp;m_options);&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; if(status_code != STATUS_OK) printf(&amp;quot;spektel_init.twi_master_init status: %x&amp;quot;, status_code);
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; twi_master_enable(&lt;span class=&quot;ni&quot;&gt;&amp;amp;TWI_MASTER);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;twi-x-bus-slave-initialization&quot;&gt;TWI X-Bus slave initialization&lt;/h3&gt;
+&lt;p&gt;We need to calculate the TWI slave address, the XMEGA TWI hardware implementation
+listens to. The TWI master always sends a 7-bit slave address to address one slave 
+listening on the bus. There is a register for this address, but in our case the sensor
+should behave like a multiple personality and react to three sensor addresses.&lt;/p&gt;
+
+&lt;p&gt;As muknukem (am rcgroups.com and rc-heli.de forums member) re-engineered, the Spektrum RC
+X-Bus starts to enumerates the sensor addresses 70ms after the power is stable. It sends a 
+request for each address between 0x01 to 0x7D, with pauses of 13ms in two cycles. Each
+sensor the Spektrum transmitters know have one or more (the GPS sensor uses two, because
+it needs to send more data) addresses. So the number of different sensors is theoretically
+limited by the number of the requested addresses. On the other hand all is fixed and simple.  &lt;/p&gt;
+
+&lt;p&gt;The good thing is, the TM1000 telemetry module doesn’t care, if the sensor reacts to a request for
+lets say address 0x01 with 0x0A for the Powerbox sensor. It uses what the sensor sends back.
+After the startup procedure, the TM1000 only asks for sensors we sent a response for
+(again, the address sent back is the interesting one).&lt;/p&gt;
+
+&lt;p&gt;The XMEGA reacts to all addresses by setting this register:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; TWIC.SLAVE.CTRLA |= 0x02; // PMEN: Promiscuous Mode Enable - address match logic disabled, react to everything&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;But to save the interrupt routines some work it could be useful to set the XMEGA hardware
+to react not to all. On the ATMEGA and Arduinos the following code works:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; uint8_t twi_slave_address = 0x00;
+&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt; status_code_t status_code = 0x00;
+&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt; // calculate slave address for single sensor (two TWI addresses are only support by XMEGA)
+&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt; if( CURRENT_TEL ) {
+&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt; 	twi_slave_address |= CURRENT_SENS;
+&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt; }
+&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt; if( POWERBOX_TEL ) {
+&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt; 	twi_slave_address |= POWERBOX_SENS;
+&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt; }
+&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; if( VARIO_TEL ) {
+&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt; 	twi_slave_address |= VARIO_SENS;
+&lt;span class=&quot;lineno&quot;&gt;12&lt;/span&gt; }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;em&gt;In my experience, his is not working for the XMEGA!&lt;/em&gt; And two addresses can be applied with
+respect to the datasheet, but not three.&lt;/p&gt;
+
+&lt;p&gt;So the further code looks like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; sysclk_enable_peripheral_clock(&lt;span class=&quot;ni&quot;&gt;&amp;amp;TWI_SLAVE);&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; TWI_SlaveInitializeDriver(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;slave, &lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;TWI_SLAVE, *slave_process);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Where &lt;code&gt;*slave_process&lt;/code&gt; is a pointer to the a function reacting on requests from the master.
+I will get into more detail later on.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; TWI_SlaveInitializeModule(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;slave, twi_slave_address, TWI_SLAVE_INTLVL_MED_gc);
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; 	
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; //TWI address for Current, Powerbox and Vario 
+&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; TWIC.SLAVE.ADDRMASK = (0x4B &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt; 1&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;;&lt;/span&gt;  &lt;span class=&quot;err&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;mask&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;all&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;address&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;bits&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;which&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;are&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;different&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;between&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;all&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;used&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;sensors&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;5&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;6&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;uint8_t&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;i =&lt;/span&gt;&lt;span class=&quot;err&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;0;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;TWIS_SEND_BUFFER_SIZE&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;++)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;7&lt;/span&gt; 	&lt;span class=&quot;na&quot;&gt;slave&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;receivedData&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;8&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The magic is done by  writing  0x4B to the upper 7bits of the Slave ADDRMASK Address Mask Register.
+The datasheet says:&lt;/p&gt;
+
+&lt;p&gt;“If ADDREN is set to zero, ADDRMASK can be loaded with a 7-bit slave address mask. Each bit in ADDRMASK
+can mask (disable) the corresponding address bit in the ADDR register. If the mask bit is one, the address match
+between the incoming address bit and the corresponding bit in ADDR is ignored; i.e., masked bits will always
+match.”&lt;/p&gt;
+
+&lt;p&gt;We leave ADDREN (Bit 0 of the same register) to zero. The mask is calculated as following:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; 0000 0011	Current Sensor address
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; 0000 1010	Powerbox Sensor address
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; 0100 0000   Vario Sensor address
+&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; -----------------------------------
+&lt;span class=&quot;lineno&quot;&gt;5&lt;/span&gt; 0100 1011   = 0x4B as Address Mask&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The last part of the code initializes the receive buffer.&lt;/p&gt;
+
+&lt;h3 id=&quot;twi-slave-operation&quot;&gt;TWI slave operation&lt;/h3&gt;
+&lt;p&gt;Whenever the master request some data from the slave an interrupt routine within the ASF
+is called and will ask some client code for the sensor values. And here is the first odd
+part of the ASF TWI implementation in my humble opinion. The following was posted on avrfreaks.net
+from me.&lt;/p&gt;
+
+&lt;p&gt;When looking on the twis.c implementation for TWI slaves it misses an important functionality
+to me. Looking at the Arduino Wire library it provides a &lt;code&gt;onReceive()&lt;/code&gt; and &lt;code&gt;onRequest()&lt;/code&gt; 
+where the first one is to receive data from the master and the second is to respond to 
+the masters request.When looking into the ASF TWI slave implementation there is only one 
+callback for the &lt;code&gt;onReceive()&lt;/code&gt; case. So I didn’t figure out what the way to handle master 
+requests would be. By initializing the TWI slave module the following is used (same as above):&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; sysclk_enable_peripheral_clock(&lt;span class=&quot;ni&quot;&gt;&amp;amp;TWI_SLAVE);&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; TWI_SlaveInitializeDriver(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;slave, &lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;TWI_SLAVE, *slave_process);
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; TWI_SlaveInitializeModule(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;slave, twi_slave_address, TWI_SLAVE_INTLVL_MED_gc);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Where &lt;code&gt;*slave_process&lt;/code&gt; is the callback. Looking in &lt;code&gt;twis.c&lt;/code&gt; it looks like the following. 
+&lt;code&gt;TWI_SlaveDataHandler(...)&lt;/code&gt; is called (via two functions calls) in the TWIx Interrupt 
+Service Routine.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; void TWI_SlaveDataHandler(TWI_Slave_t *twi)
+&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt; {
+&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt; 	if (twi-&amp;gt;interface-&amp;gt;SLAVE.STATUS &lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt; TWI_SLAVE_DIR_bm) {
+&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt; 		TWI_SlaveWriteHandler(twi);
+&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt; 	} else {
+&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt; 		TWI_SlaveReadHandler(twi);
+&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt; 	}
+&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt; }
+&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; //and later
+&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;12&lt;/span&gt; /* brief TWI slave read interrupt handler.
+&lt;span class=&quot;lineno&quot;&gt;13&lt;/span&gt;  *  Handles TWI slave read transactions and responses.
+&lt;span class=&quot;lineno&quot;&gt;14&lt;/span&gt;  *  param twi The TWI_Slave_t struct instance.
+&lt;span class=&quot;lineno&quot;&gt;15&lt;/span&gt;  */
+&lt;span class=&quot;lineno&quot;&gt;16&lt;/span&gt; void TWI_SlaveReadHandler(TWI_Slave_t *twi)
+&lt;span class=&quot;lineno&quot;&gt;17&lt;/span&gt; {
+&lt;span class=&quot;lineno&quot;&gt;18&lt;/span&gt; 	/* Enable stop interrupt. */
+&lt;span class=&quot;lineno&quot;&gt;19&lt;/span&gt; 	uint8_t currentCtrlA = twi-&amp;gt;interface-&amp;gt;SLAVE.CTRLA;
+&lt;span class=&quot;lineno&quot;&gt;20&lt;/span&gt; 	twi-&amp;gt;interface-&amp;gt;SLAVE.CTRLA = currentCtrlA | TWI_SLAVE_PIEN_bm;
+&lt;span class=&quot;lineno&quot;&gt;21&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;22&lt;/span&gt; 	/* If free space in buffer. */
+&lt;span class=&quot;lineno&quot;&gt;23&lt;/span&gt; 	if (twi-&amp;gt;bytesReceived &lt;span class=&quot;nt&quot;&gt;&amp;lt; TWIS_RECEIVE_BUFFER_SIZE&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;24&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;/*&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Fetch&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;*/&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;25&lt;/span&gt; 		&lt;span class=&quot;na&quot;&gt;uint8_t&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;data =&lt;/span&gt;&lt;span class=&quot;err&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;twi-&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;interface-&amp;gt;SLAVE.DATA;
+&lt;span class=&quot;lineno&quot;&gt;26&lt;/span&gt; 		twi-&amp;gt;receivedData[twi-&amp;gt;bytesReceived] = data;
+&lt;span class=&quot;lineno&quot;&gt;27&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;28&lt;/span&gt; // look here &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;
+&lt;span class=&quot;lineno&quot;&gt;29&lt;/span&gt; 		/* Process data. */
+&lt;span class=&quot;lineno&quot;&gt;30&lt;/span&gt; 		twi-&amp;gt;Process_Data();
+&lt;span class=&quot;lineno&quot;&gt;31&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;32&lt;/span&gt; 		twi-&amp;gt;bytesReceived++;
+&lt;span class=&quot;lineno&quot;&gt;33&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;34&lt;/span&gt; 		/* If application signalling need to abort (error occured),
+&lt;span class=&quot;lineno&quot;&gt;35&lt;/span&gt; 		 * complete transaction and wait for next START. Otherwise
+&lt;span class=&quot;lineno&quot;&gt;36&lt;/span&gt; 		 * send ACK and wait for data interrupt.
+&lt;span class=&quot;lineno&quot;&gt;37&lt;/span&gt; 		 */
+&lt;span class=&quot;lineno&quot;&gt;38&lt;/span&gt; 		if (twi-&amp;gt;abort) {
+&lt;span class=&quot;lineno&quot;&gt;39&lt;/span&gt; 			twi-&amp;gt;interface-&amp;gt;SLAVE.CTRLB = TWI_SLAVE_CMD_COMPTRANS_gc;
+&lt;span class=&quot;lineno&quot;&gt;40&lt;/span&gt; 			TWI_SlaveTransactionFinished(twi, TWIS_RESULT_ABORTED);
+&lt;span class=&quot;lineno&quot;&gt;41&lt;/span&gt; 			twi-&amp;gt;abort = false;
+&lt;span class=&quot;lineno&quot;&gt;42&lt;/span&gt; 		} else {
+&lt;span class=&quot;lineno&quot;&gt;43&lt;/span&gt; 			twi-&amp;gt;interface-&amp;gt;SLAVE.CTRLB = TWI_SLAVE_CMD_RESPONSE_gc;
+&lt;span class=&quot;lineno&quot;&gt;44&lt;/span&gt; 		}
+&lt;span class=&quot;lineno&quot;&gt;45&lt;/span&gt; 	}
+&lt;span class=&quot;lineno&quot;&gt;46&lt;/span&gt; 	/* If buffer overflow, send NACK and wait for next START. Set
+&lt;span class=&quot;lineno&quot;&gt;47&lt;/span&gt; 	 * result buffer overflow.
+&lt;span class=&quot;lineno&quot;&gt;48&lt;/span&gt; 	 */
+&lt;span class=&quot;lineno&quot;&gt;49&lt;/span&gt; 	else {
+&lt;span class=&quot;lineno&quot;&gt;50&lt;/span&gt; 		twi-&amp;gt;interface-&amp;gt;SLAVE.CTRLB = TWI_SLAVE_ACKACT_bm |
+&lt;span class=&quot;lineno&quot;&gt;51&lt;/span&gt; 		                              TWI_SLAVE_CMD_COMPTRANS_gc;
+&lt;span class=&quot;lineno&quot;&gt;52&lt;/span&gt; 		TWI_SlaveTransactionFinished(twi, TWIS_RESULT_BUFFER_OVERFLOW);
+&lt;span class=&quot;lineno&quot;&gt;53&lt;/span&gt; 	}
+&lt;span class=&quot;lineno&quot;&gt;54&lt;/span&gt; }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;So you see, that for the read handler the Process_Data callback handler is placed. Looking
+on the write handler this callback is missing. The following change of &lt;code&gt;twis.c&lt;/code&gt; works 
+for me (I only need the onRequest() so I used the same callback function):&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; /* brief TWI slave write interrupt handler.
+&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt;  *  Handles TWI slave write transactions and responses.
+&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt;  *
+&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt;  *  param twi The TWI_Slave_t struct instance.
+&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt;  */
+&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt; void TWI_SlaveWriteHandler(TWI_Slave_t *twi)
+&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt; {
+&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt; 	/* If NACK, slave write transaction finished. */
+&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt; 	if ((twi-&amp;gt;bytesSent &amp;gt; 0) &lt;span class=&quot;err&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; (twi-&amp;gt;interface-&amp;gt;SLAVE.STATUS &lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; 	                             TWI_SLAVE_RXACK_bm)) {						 
+&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;12&lt;/span&gt; 		twi-&amp;gt;interface-&amp;gt;SLAVE.CTRLB = TWI_SLAVE_CMD_COMPTRANS_gc;
+&lt;span class=&quot;lineno&quot;&gt;13&lt;/span&gt; 		TWI_SlaveTransactionFinished(twi, TWIS_RESULT_OK);
+&lt;span class=&quot;lineno&quot;&gt;14&lt;/span&gt; //&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt; added the next line for callback		
+&lt;span class=&quot;lineno&quot;&gt;15&lt;/span&gt; 		twi-&amp;gt;Process_Data();
+&lt;span class=&quot;lineno&quot;&gt;16&lt;/span&gt; 	}
+&lt;span class=&quot;lineno&quot;&gt;17&lt;/span&gt; 	/* If ACK, master expects more data. */
+&lt;span class=&quot;lineno&quot;&gt;18&lt;/span&gt; 	else {
+&lt;span class=&quot;lineno&quot;&gt;19&lt;/span&gt; 		if (twi-&amp;gt;bytesSent &lt;span class=&quot;nt&quot;&gt;&amp;lt; TWIS_SEND_BUFFER_SIZE&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;20&lt;/span&gt; 			&lt;span class=&quot;na&quot;&gt;uint8_t&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;data =&lt;/span&gt;&lt;span class=&quot;err&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;twi-&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;sendData[twi-&amp;gt;bytesSent];
+&lt;span class=&quot;lineno&quot;&gt;21&lt;/span&gt; 			twi-&amp;gt;interface-&amp;gt;SLAVE.DATA = data;
+&lt;span class=&quot;lineno&quot;&gt;22&lt;/span&gt; 			twi-&amp;gt;bytesSent++;
+&lt;span class=&quot;lineno&quot;&gt;23&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;24&lt;/span&gt; 			/* Send data, wait for data interrupt. */
+&lt;span class=&quot;lineno&quot;&gt;25&lt;/span&gt; 			twi-&amp;gt;interface-&amp;gt;SLAVE.CTRLB = TWI_SLAVE_CMD_RESPONSE_gc;
+&lt;span class=&quot;lineno&quot;&gt;26&lt;/span&gt; 		}
+&lt;span class=&quot;lineno&quot;&gt;27&lt;/span&gt; 		/* If buffer overflow. */
+&lt;span class=&quot;lineno&quot;&gt;28&lt;/span&gt; 		else {
+&lt;span class=&quot;lineno&quot;&gt;29&lt;/span&gt; 			twi-&amp;gt;interface-&amp;gt;SLAVE.CTRLB = TWI_SLAVE_CMD_COMPTRANS_gc;
+&lt;span class=&quot;lineno&quot;&gt;30&lt;/span&gt; 			TWI_SlaveTransactionFinished(twi, TWIS_RESULT_BUFFER_OVERFLOW);
+&lt;span class=&quot;lineno&quot;&gt;31&lt;/span&gt; 		}
+&lt;span class=&quot;lineno&quot;&gt;32&lt;/span&gt; 	}
+&lt;span class=&quot;lineno&quot;&gt;33&lt;/span&gt; }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;I don’t think such changes should be made to a standard library. But I invested to much time
+to understand the framework, so that it was easier for me than a rewrite.&lt;/p&gt;
+
+&lt;h3 id=&quot;sending-out-data&quot;&gt;Sending out data&lt;/h3&gt;
+&lt;p&gt;If the slave_process function is called via the &lt;code&gt;twi-&amp;gt;Process_Data()&lt;/code&gt; function pointer,
+&lt;code&gt;spektel_write_sensor_data()&lt;/code&gt; is called sending out the data in a round robin pattern.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; /**
+&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt;  * \brief Write the values of a sensor to the (I2C/TWI) X-Bus. Since the TM1000 doesn&amp;#39;t match
+&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt;  *        the requested address to the delivered address this function implements a round robin.	
+&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt;  */
+&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt; void spektel_write_sensor_data() {
+&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt; 	uint8_t i = 0;
+&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt; 	if(slave.status == TWIS_STATUS_READY) {
+&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt; 		for(i = 0; i &lt;span class=&quot;nt&quot;&gt;&amp;lt; DATA_LENGTH&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;TWIS_SEND_BUFFER_SIZE&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;++)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt; 			&lt;span class=&quot;na&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;toggle =&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; 				&lt;span class=&quot;na&quot;&gt;slave&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;sendData&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;powerbox_data&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;byte&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt; 			&lt;span class=&quot;err&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;toggle =&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;12&lt;/span&gt; 				&lt;span class=&quot;na&quot;&gt;slave&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;sendData&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;current_data&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;byte&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;13&lt;/span&gt; 			&lt;span class=&quot;err&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;toggle =&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;14&lt;/span&gt; 				&lt;span class=&quot;na&quot;&gt;slave&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;sendData&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;vario_data&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;byte&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;15&lt;/span&gt; 			&lt;span class=&quot;err&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;16&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;17&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;18&lt;/span&gt; 	&lt;span class=&quot;na&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;(++&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;toggle&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt; 2) toggle = 0;
+&lt;span class=&quot;lineno&quot;&gt;19&lt;/span&gt; }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;All we need to do is to write the data to the &lt;code&gt;slave.sendData[]&lt;/code&gt; array. Since each X-Bus
+data package is 16 byte long starting with the slave address in the first byte, a zero byte
+and then the data, we can send all data in one chunk. I just changed the buffer sizes in the
+&lt;code&gt;twis.h&lt;/code&gt; file to 16 byte:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; /* Buffer size defines. */
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; #define TWIS_RECEIVE_BUFFER_SIZE         16
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; #define TWIS_SEND_BUFFER_SIZE            16&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The format of each sensor data package is defined by the Spektrum TM1000 module and translated
+to data structures in the &lt;code&gt;spektel.h&lt;/code&gt; file. If the measuring code of the sensor has new data,
+it writes it to these structures (for example &lt;code&gt;spektel_sensor_powerbox_t&lt;/code&gt;) and calls the 
+&lt;code&gt;spektel_write_pwerbox_sens(...)&lt;/code&gt; function which translates it into an 16 byte array for the
+next TWI &lt;code&gt;onRequest()&lt;/code&gt; action.&lt;/p&gt;
+
+&lt;p&gt;I hope the whole process on the slave side gets clear now.&lt;/p&gt;
+
+&lt;h3 id=&quot;communication-as-a-twi-master&quot;&gt;Communication as a TWI Master&lt;/h3&gt;
+&lt;p&gt;Setting up the connection to the BMP180, where the XMEGA is the Master and the BMP180 is the
+slave took me some time to figure out. But one by one!&lt;/p&gt;
+
+&lt;h3 id=&quot;getting-the-hardware-right&quot;&gt;Getting the hardware right&lt;/h3&gt;
+&lt;p&gt;The I2C / TWI bus used to connect the Bosch BMP180 pressure sensor has two pull-up resistors.
+This is the general design of each TWI bus and used on the X-Bus TM1000 side as well. One
+resistor for each line (SDA/SCL) no matter how many slaves are connected to pull the open drain
+signal lines to Vcc (3.3V in our case) if needed. If you work with a 5V µC you will need
+an additional level shifter.&lt;/p&gt;
+
+&lt;p&gt;I tried to be smarter than the datasheet and put 2.7K in. It turned out, that they are two
+small to drive the SDA and SCL lines to GND fast enough. So use 4.7K for the TWI/I2Cs instead.
+For the X-Bus 2.7K seems to work, but the connection using a 20cm cable is much longer as the
+1cm data lines on the board for the BMP180.&lt;/p&gt;
+
+&lt;p&gt;I got myself a Saleae Logic8 logic analyser. Why it is probably not the most needed tool,
+in this case it helps a lot. And it brings analog monitoring functionality as well. From the
+signal shape below I figured out that something goes wrong. The XMEGA trys to pull down the 
+signal resulting in a slow drop of the signal voltage.&lt;/p&gt;
+
+&lt;figure&gt;
+	&lt;img src=&quot;/images/saleae_logic_i2c_bmp180_faulty.jpg&quot; /&gt;
+	&lt;figcaption&gt;Monitoring the I2C bus to the BMP180&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;It has to look this way. The sequence just reads the static device ID for test purposes.&lt;/p&gt;
+
+&lt;figure&gt;
+	&lt;img src=&quot;/images/saleae_logic_i2c_bmp180.jpg&quot; /&gt;
+	&lt;figcaption&gt;Monitoring the I2C bus to the BMP180&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;h3 id=&quot;initializing-the-master&quot;&gt;Initializing the Master&lt;/h3&gt;
+&lt;p&gt;Here the code from the TWI initialization routine above again in short form: &lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; bool spektel_init() {
+&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt; // Initialize ports
+&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt; TWI_MASTER_PORT.PIN0CTRL = PORT_OPC_WIREDAND_gc;
+&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt; TWI_MASTER_PORT.PIN1CTRL = PORT_OPC_WIREDAND_gc;
+&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt; irq_initialize_vectors();
+&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt; sysclk_enable_peripheral_clock(&lt;span class=&quot;ni&quot;&gt;&amp;amp;TWI_MASTER);&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt; twi_bridge_enable(&lt;span class=&quot;ni&quot;&gt;&amp;amp;TWI_MASTER);&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt; twi_options_t m_options = {
+&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt; 	.speed     = TWI_SPEED,
+&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; 	.chip      = TWI_MASTER_ADDR,
+&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt; 	.speed_reg = TWI_BAUD(sysclk_get_cpu_hz(), TWI_SPEED)
+&lt;span class=&quot;lineno&quot;&gt;12&lt;/span&gt; };&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we can directly start writing to the slave devices. In our case, the BMP180
+provides EEPROM style registers for the communication. So this is a standard style
+for TWI communication.&lt;/p&gt;
+
+&lt;p&gt;Write: Write the 7-bit slave address and the LSB (most right bit) bit 1 for read and 0 for 
+write. As it turns out this was the next pitfall the ASF provides for me. In all of the 
+Atmel code, I worked with the 7-bit slave address more or less like with an 8-bit address 
+(expect for direct access to the registers). But the ASF library functions 
+&lt;code&gt;twi_master_write&lt;/code&gt;and &lt;code&gt;twi_master_read&lt;/code&gt; add the LSB dependent on the read or write function.
+I guess this is part of the TWI-EEPROM access protocol. Where the Bosch datasheet talks
+about 0xEF for read and 0xEE for write, the ASF functions need 0x77! With this we can read 
+and write bytes:&lt;/p&gt;
+
+&lt;p&gt;Here the code from the TWI initialization routine above again in short form: &lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; /** Read a byte
+&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt;  *
+&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt;  * \param reg_addr the register address.
+&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt;  * \param byte the data to be read.
+&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt;  *
+&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt;  * \return status of read operation
+&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt;  */
+&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt; static uint8_t read_byte(const uint8_t reg_addr, uint8_t *byte)
+&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt; {
+&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; 	twi_package_t r_packet = {
+&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt; 		.addr		 = { reg_addr },
+&lt;span class=&quot;lineno&quot;&gt;12&lt;/span&gt; 		.addr_length = 1,
+&lt;span class=&quot;lineno&quot;&gt;13&lt;/span&gt; 		.chip        = BMP180_ADDR_READ &amp;gt;&amp;gt; 1,
+&lt;span class=&quot;lineno&quot;&gt;14&lt;/span&gt; 		.buffer      = byte,
+&lt;span class=&quot;lineno&quot;&gt;15&lt;/span&gt; 		.length      = 1,
+&lt;span class=&quot;lineno&quot;&gt;16&lt;/span&gt; 		.no_wait     = false
+&lt;span class=&quot;lineno&quot;&gt;17&lt;/span&gt; 	};
+&lt;span class=&quot;lineno&quot;&gt;18&lt;/span&gt; 	return twi_master_read(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;TWI_MASTER, &lt;span class=&quot;ni&quot;&gt;&amp;amp;r_packet);&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;19&lt;/span&gt; }
+&lt;span class=&quot;lineno&quot;&gt;20&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;21&lt;/span&gt; /** Write a byte
+&lt;span class=&quot;lineno&quot;&gt;22&lt;/span&gt;  *
+&lt;span class=&quot;lineno&quot;&gt;23&lt;/span&gt;  * \param reg_addr the register address.
+&lt;span class=&quot;lineno&quot;&gt;24&lt;/span&gt;  * \param byte the data to be written.
+&lt;span class=&quot;lineno&quot;&gt;25&lt;/span&gt;  *
+&lt;span class=&quot;lineno&quot;&gt;26&lt;/span&gt;  * \return status of operation
+&lt;span class=&quot;lineno&quot;&gt;27&lt;/span&gt;  */
+&lt;span class=&quot;lineno&quot;&gt;28&lt;/span&gt; static uint8_t write_byte(const uint8_t reg_addr, uint8_t byte)
+&lt;span class=&quot;lineno&quot;&gt;29&lt;/span&gt; {
+&lt;span class=&quot;lineno&quot;&gt;30&lt;/span&gt; 	twi_package_t w_packet = {
+&lt;span class=&quot;lineno&quot;&gt;31&lt;/span&gt; 		.addr		 = { reg_addr },
+&lt;span class=&quot;lineno&quot;&gt;32&lt;/span&gt; 		.addr_length = sizeof(reg_addr),
+&lt;span class=&quot;lineno&quot;&gt;33&lt;/span&gt; 		.chip        = BMP180_ADDR_WRITE &amp;gt;&amp;gt; 1,
+&lt;span class=&quot;lineno&quot;&gt;34&lt;/span&gt; 		.buffer      = &lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;byte,
+&lt;span class=&quot;lineno&quot;&gt;35&lt;/span&gt; 		.length      = sizeof(uint8_t),
+&lt;span class=&quot;lineno&quot;&gt;36&lt;/span&gt; 		.no_wait     = false
+&lt;span class=&quot;lineno&quot;&gt;37&lt;/span&gt; 	};
+&lt;span class=&quot;lineno&quot;&gt;38&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;39&lt;/span&gt; 	return twi_master_write(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;TWI_MASTER, &lt;span class=&quot;ni&quot;&gt;&amp;amp;w_packet);&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;40&lt;/span&gt; }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;For the .chip you can use 0x77 or the datasheet address shifted to the right. On the bus
+the XMEGA will call with 0xEF and 0XEF showing if it wants to read or write. &lt;/p&gt;
+
+&lt;h3 id=&quot;reading-many-bytes&quot;&gt;Reading many bytes&lt;/h3&gt;
+&lt;p&gt;Another pitfall was, that the Atmel ASF seems to expect the MSB (in this case higher &lt;strong&gt;byte&lt;/strong&gt; 
+of a 16 bit value) and LSB (lower byte) order different than the Bosch BMP180. The 
+library supports to read multiple bytes in one read. Doing so, the BMP180 respondes with 
+the MSB, the Master sends an &lt;code&gt;ACK&lt;/code&gt; requesting more data. Then the BMP180 sends the LSB
+and a &lt;code&gt;NAK&lt;/code&gt; follows to finish the communication and release the bus.
+But the ASF gives back that values in the wrong order LSB-MSB. So a swap operation is needed
+at the end. Either the BMP180 or the ASF gets it wrong!?  &lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; /** Read word (16bit)
+&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt;  *
+&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt;  * \param reg_addr the register address.
+&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt;  * \param word the data to be read.
+&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt;  *
+&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt;  * \return status of operation
+&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt;  */
+&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt; static uint8_t read_word(const uint8_t reg_addr, uint16_t *word)
+&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt; {
+&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; 	uint8_t err;
+&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt; 	
+&lt;span class=&quot;lineno&quot;&gt;12&lt;/span&gt; 	twi_package_t r_packet = {
+&lt;span class=&quot;lineno&quot;&gt;13&lt;/span&gt; 		.addr		 = { reg_addr },
+&lt;span class=&quot;lineno&quot;&gt;14&lt;/span&gt; 		.addr_length = sizeof(reg_addr),
+&lt;span class=&quot;lineno&quot;&gt;15&lt;/span&gt; 		.chip        = BMP180_ADDR_READ &amp;gt;&amp;gt; 1,
+&lt;span class=&quot;lineno&quot;&gt;16&lt;/span&gt; 		.buffer      = word,
+&lt;span class=&quot;lineno&quot;&gt;17&lt;/span&gt; 		.length      = sizeof(uint16_t),
+&lt;span class=&quot;lineno&quot;&gt;18&lt;/span&gt; 		.no_wait     = false
+&lt;span class=&quot;lineno&quot;&gt;19&lt;/span&gt; 	};
+&lt;span class=&quot;lineno&quot;&gt;20&lt;/span&gt; 	err = twi_master_read(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;TWI_MASTER, &lt;span class=&quot;ni&quot;&gt;&amp;amp;r_packet);&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;21&lt;/span&gt; 	
+&lt;span class=&quot;lineno&quot;&gt;22&lt;/span&gt; 	uint8_t lsb = (*word) &amp;gt;&amp;gt; 8;
+&lt;span class=&quot;lineno&quot;&gt;23&lt;/span&gt; 	(*word) = ((*word) &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt; 8&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;lsb&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;24&lt;/span&gt; 	
+&lt;span class=&quot;lineno&quot;&gt;25&lt;/span&gt; 	&lt;span class=&quot;na&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;26&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+  &lt;p&gt;&lt;a href=&quot;/articles/XMEGA_ASF_TWI&quot;&gt;XMEGA, ASF and TWI/I2C&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on January 03, 2015.&lt;/p&gt;</content>
+</entry>
 
 
 <entry>
@@ -84,11 +578,15 @@ will loop through the thousands digit from 0 to 9. If the right number is displa
 button until the red LED lights up again. Now the same process starts for the ten thousands
 digit, but only from 0 to 5. Press the button until the red LED lights up.&lt;/p&gt;
 
-&lt;h3 id=&quot;finish&quot;&gt;Finish&lt;/h3&gt;
 &lt;p&gt;If the value is saved successfully to the EEPROM, the red LED goes out again. The sensor
 can be used right away and will reload the stored capacity value on the next power up.&lt;/p&gt;
 
-&lt;p&gt;To stop the setup process in between, cut the power of the sensor. &lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;To stop the setup process in between, cut the power of the sensor!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;restrictions&quot;&gt;Restrictions&lt;/h3&gt;
+&lt;p&gt;I implemented the setup function using a simple way. There are no interrupts, no debounce
+of the button, etc. So you need to watch to the LED and release the button after the
+red light changes. But hey, it is only the setup function, you won’t use it every day.&lt;/p&gt;
 
 &lt;p&gt;Since the capacity in the Spektrum X-Bus protocol uses a 16Bit
 variable, the maximum is 65535mAh. For program simplicity the maximum battery capacity
@@ -130,8 +628,12 @@ understand the source code of the sensor firmware.&lt;/p&gt;
 
 &lt;p&gt;This is not a C or Atmel Studio tutorial. It will suite programmers, who know basic C (or
 C style programming) and move to the XMEGA development. Although the Atmel datasheet is our
-friend and the basis of the code I will not go into the XMEGA details.
-I’m just not expert enough up to now to do so.&lt;/p&gt;
+friend and the basis of the code I will not go into the XMEGA details. I’m just not expert 
+enough up to now to do so.&lt;/p&gt;
+
+&lt;p&gt;Download the XMEGA datasheet and manual from the &lt;a href=&quot;http://www.atmel.com&quot;&gt;Atmel&lt;/a&gt; website. 
+The datasheet covers the specialities of the &lt;code&gt;ATXMEGA32E5&lt;/code&gt; while the manual is the same
+for all XMEGAs and provides a deep look in each hardware module.&lt;/p&gt;
 
 &lt;h3 id=&quot;testing-the-board&quot;&gt;Testing the board&lt;/h3&gt;
 &lt;p&gt;The “Hello world!” in the µC world is a blink. The board has two LEDs to do some blinking
@@ -406,6 +908,28 @@ can be soldered.&lt;/p&gt;
 &lt;figure&gt;
 	&lt;img src=&quot;/images/Assembled_REV_B_bottom_errata.jpg&quot; /&gt;
 	&lt;figcaption&gt;Assembled REV_B bottom side&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;The I2C / TWI bus used to connect the Bosch BMP180 pressure sensor has two pull-up resistors.
+I tried to be smarter than the datasheet and put 2.7K in. It turned out, that they are two
+small to drive the SDA and SCL lines to GND fast enough. So use 4.7K for R4 and 
+R5 instead.&lt;/p&gt;
+
+&lt;p&gt;I got myself a Saleae Logic8 logic analyser. Why it is probably not the most needed tool,
+in this case it helps a lot. And it brings analog monitoring functionality as well. From the
+signal shape below I figured out that something goes wrong. The XMEGA trys to pull down the 
+signal resulting in a slow drop of the signal voltage.&lt;/p&gt;
+
+&lt;figure&gt;
+	&lt;img src=&quot;/images/saleae_logic_i2c_bmp180_faulty.jpg&quot; /&gt;
+	&lt;figcaption&gt;Monitoring the I2C bus to the BMP180&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;It has to look this way. The sequence just reads the static device ID for test purposes.&lt;/p&gt;
+
+&lt;figure&gt;
+	&lt;img src=&quot;/images/saleae_logic_i2c_bmp180.jpg&quot; /&gt;
+	&lt;figcaption&gt;Monitoring the I2C bus to the BMP180&lt;/figcaption&gt;
 &lt;/figure&gt;
 
 &lt;h3 id=&quot;outlook&quot;&gt;Outlook&lt;/h3&gt;
