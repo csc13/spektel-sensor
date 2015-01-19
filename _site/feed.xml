@@ -5,7 +5,7 @@
 <generator uri="https://github.com/mojombo/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2015-01-04T01:09:54+01:00</updated>
+<updated>2015-01-19T00:48:30+01:00</updated>
 <id>/</id>
 <author>
   <name>Christian</name>
@@ -583,6 +583,13 @@ can be used right away and will reload the stored capacity value on the next pow
 
 &lt;p&gt;&lt;strong&gt;To stop the setup process in between, cut the power of the sensor!&lt;/strong&gt;&lt;/p&gt;
 
+&lt;h3 id=&quot;self-calibration&quot;&gt;Self calibration&lt;/h3&gt;
+&lt;p&gt;Since the ACS758 hall sensor and ADC have some tolerance, as well as the used resistors a
+calibration procedure is required. After the setup procedure, the sensor will do a self
+calibration. Please make sure, that nothing is connected to the battery cables. The sensor 
+will get it’s power via the X-Bus from the TM1000 module. The calibration values are
+stored to the EEPROM as well.&lt;/p&gt;
+
 &lt;h3 id=&quot;restrictions&quot;&gt;Restrictions&lt;/h3&gt;
 &lt;p&gt;I implemented the setup function using a simple way. There are no interrupts, no debounce
 of the button, etc. So you need to watch to the LED and release the button after the
@@ -590,7 +597,7 @@ red light changes. But hey, it is only the setup function, you won’t use it ev
 
 &lt;p&gt;Since the capacity in the Spektrum X-Bus protocol uses a 16Bit
 variable, the maximum is 65535mAh. For program simplicity the maximum battery capacity
-is now limited to 50.000mAh, which should be good enough for most RC use cases.&lt;/p&gt;
+is now limited to 59.900mAh, which should be good enough for most RC use cases.&lt;/p&gt;
 
 &lt;h3 id=&quot;hook-up-diagramm&quot;&gt;Hook up diagramm&lt;/h3&gt;
 &lt;p&gt;Since I have not given a hook up guide, I will provide a small sketch to see the basic
@@ -892,6 +899,14 @@ Allegro sensor and button take almost all of the space.&lt;/p&gt;
 	&lt;img src=&quot;/images/Assembled_REV_B_bottom.jpg&quot; /&gt;
 	&lt;figcaption&gt;Assembled REV_B bottom side&lt;/figcaption&gt;
 &lt;/figure&gt;
+
+&lt;h3 id=&quot;assembling-the-bmp180&quot;&gt;Assembling the BMP180&lt;/h3&gt;
+&lt;p&gt;The self created footprint of the BMP180 in Eagle is a little bit larger, so that there is
+enough place for the soldering tip. Put solder on the connected pads. Be careful to get the 
+pads filled, but don’t spend to much solder. Then flux, position the sensor - the pads are 
+on the very edges - and heat while supplying little pressure with the tweezers. The BMP180
+should level 100% with the board. Look from the side to see if it’s completely flat on
+the board with no gap or seam. The metal case of the sensor must have a connection to ground. &lt;/p&gt;
 
 &lt;h3 id=&quot;errata&quot;&gt;Errata&lt;/h3&gt;
 &lt;p&gt;Again, there are some small faults on the board. Or at least things to optimize. I put

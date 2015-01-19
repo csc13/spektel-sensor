@@ -70,6 +70,13 @@ can be used right away and will reload the stored capacity value on the next pow
 
 **To stop the setup process in between, cut the power of the sensor!**
 
+###Self calibration
+Since the ACS758 hall sensor and ADC have some tolerance, as well as the used resistors a
+calibration procedure is required. After the setup procedure, the sensor will do a self
+calibration. Please make sure, that nothing is connected to the battery cables. The sensor 
+will get it's power via the X-Bus from the TM1000 module. The calibration values are
+stored to the EEPROM as well.
+
 ###Restrictions
 I implemented the setup function using a simple way. There are no interrupts, no debounce
 of the button, etc. So you need to watch to the LED and release the button after the
@@ -77,7 +84,7 @@ red light changes. But hey, it is only the setup function, you won't use it ever
 
 Since the capacity in the Spektrum X-Bus protocol uses a 16Bit
 variable, the maximum is 65535mAh. For program simplicity the maximum battery capacity
-is now limited to 50.000mAh, which should be good enough for most RC use cases.
+is now limited to 59.900mAh, which should be good enough for most RC use cases.
 
 ###Hook up diagramm
 Since I have not given a hook up guide, I will provide a small sketch to see the basic

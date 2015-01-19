@@ -70,7 +70,7 @@ to Vcc and many more.
 A great tip I found very useful is to fix the SMD belts on a small board using double sided
 duct tape. I wrote the values on the stripes. So everything is sorted and fixed.
 
-### Assembly time!
+###Assembly time!
 I ordered the board etched, tinned and drilled. So there are no connected vias and no 
 solder or print masks. So first I removed all layers expect the routes, vias and components 
 with their names in Eagle PCB to create a plan for assembling. You will find these assembly 
@@ -103,6 +103,14 @@ Allegro sensor and button take almost all of the space.
 	<img src="/images/Assembled_REV_B_bottom.jpg">
 	<figcaption>Assembled REV_B bottom side</figcaption>
 </figure>
+
+###Assembling the BMP180
+The self created footprint of the BMP180 in Eagle is a little bit larger, so that there is
+enough place for the soldering tip. Put solder on the connected pads. Be careful to get the 
+pads filled, but don't spend to much solder. Then flux, position the sensor - the pads are 
+on the very edges - and heat while supplying little pressure with the tweezers. The BMP180
+should level 100% with the board. Look from the side to see if it's completely flat on
+the board with no gap or seam. The metal case of the sensor must have a connection to ground. 
 
 ###Errata
 Again, there are some small faults on the board. Or at least things to optimize. I put
