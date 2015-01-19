@@ -47,6 +47,6 @@ it calculates the used capacity, hight and climb rate.
 Two two great serial monitors based on Processing (https://www.processing.org/).
 Please see https://github.com/sebnil/RealtimePlotter.git and see https://github.com/dahart/arduplot.git).
 
-### 2015-01-19: Added support for the REV_B board
+#### 2015-01-19: Added support for the REV_B board
 This includes the smaller board, BMP180 altitude measurement, setup button, self calibration.
 
