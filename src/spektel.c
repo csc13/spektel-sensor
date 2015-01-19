@@ -62,7 +62,10 @@ void spektel_write_vario_sens(spektel_sensor_vario_t vario) {
 	vario_data.byte[5] = vario.climb_rate;
 }
 
-
+/**
+ * \brief Write the values of a sensor to the (I2C/TWI) X-Bus. Since the TM1000 doesn't match
+ *        the requested address to the delivered address this function implements a round robin.	
+ */
 void spektel_write_sensor_data() {
 	uint8_t i = 0;
 	if(slave.status == TWIS_STATUS_READY) {
@@ -96,10 +99,9 @@ static void slave_process(void) {
 	spektel_write_sensor_data();
 }
 
-bool spektel_init() { //TWI_t *twis) {
+bool spektel_init() {
 	uint8_t twi_slave_address = 0x00;
 	status_code_t status_code = 0x00;
-	//TWIC.SLAVE.CTRLA.PMEN register set, so no address match logic required
 	// calculate slave address for single sensor (two TWI addresses are support by XMEGA)
 	if( CURRENT_TEL ) {
 		twi_slave_address |= CURRENT_SENS;
@@ -110,10 +112,11 @@ bool spektel_init() { //TWI_t *twis) {
 	if( VARIO_TEL ) {
 		twi_slave_address |= VARIO_SENS;
 	}
+
 	
 	// Initialize ports
-	TWI_MASTER_PORT.PIN0CTRL = PORT_OPC_WIREDANDPULL_gc;
-	TWI_MASTER_PORT.PIN1CTRL = PORT_OPC_WIREDANDPULL_gc;
+	TWI_MASTER_PORT.PIN0CTRL = PORT_OPC_WIREDAND_gc;
+	TWI_MASTER_PORT.PIN1CTRL = PORT_OPC_WIREDAND_gc;
 
 	irq_initialize_vectors();
 
@@ -123,7 +126,6 @@ bool spektel_init() { //TWI_t *twis) {
 	//twi_fast_mode_enable(&TWI_MASTER);
 	//twi_slave_fast_mode_enable(&TWI_SLAVE);
 
-// check if needed
 	twi_options_t m_options = {
 		.speed     = TWI_SPEED,
 		.chip      = TWI_MASTER_ADDR,

@@ -2,7 +2,7 @@
  * spektel.h
  *
  * Library for Spektrum RC sensor protocol via TM1000
- * Thanks to muknukem and many others for re-engineering and informations
+ * Thanks to mukenukem and many others for re-engineering and informations
  *
  * Created: 03.10.2014 11:50:26
  *  Author: chris
@@ -119,31 +119,63 @@ typedef struct spektel_sensor_powerbox_t {
 //! Vario sensor
 typedef struct spektel_sensor_vario_t {
  // altitude in 0.1m
- // climb rate in 0.1 m/s
- 
+/*
+
+ 40,00,altLSB,altMSB,250MSB,250LSB,500MSB,500LSB,10 00MSB,1000LSB,1500MSB,1500LSB,2000MSB,2000LSB,3000 MSB,3000LSB
+
+ alt is altitude in 0.1m
+ 250, 500, etc is altitude change rate in 0.1m, during the last 250ms, 500ms, 1s, 1.5s, 2s, 3s. So filtering is done in the sensor. 
+ If you only have one value, either use only 250ms or transmit it for all rates. If you transmit it for the 250ms rate, you have to 
+ set the radio also to 250ms in order to get vario tones.
+
+ All altitude variables are Int16
+*/ 
    //! Set Altitude in 0.1m
-   uint16_t altitude;
+   int16_t altitude;
    
    //! Set Climb Rate in 0.1m/s
-   uint16_t climb_rate;
+   int16_t climb_rate;
    	
 } spektel_sensor_vario_t;
 
 
 //! Functions
+
+/**
+ * \brief Write values for the current sensor to the Spektrum TM1000 X-Bus connection
+ *		  The values get transmitted in one of the next times, the TM1000 polls for data	
+ *
+ * \param current Spektel current sensor structure
+ */
 void spektel_write_current_sens(spektel_sensor_current_t current);
 
+/**
+ * \brief Write values for the Powerbox sensor to the Spektrum TM1000 X-Bus connection
+ *		  The values get transmitted in one of the next times, the TM1000 polls for data	
+ *
+ * \param current Spektel Powerbox sensor structure
+ */
 void spektel_write_powerbox_sens(spektel_sensor_powerbox_t current);
 
+/**
+ * \brief Write values for the Vario sensor to the Spektrum TM1000 X-Bus connection
+ *		  The values get transmitted in one of the next times, the TM1000 polls for data	
+ *
+ * \param current Spektel Vario sensor structure
+ */
 void spektel_write_vario_sens(spektel_sensor_vario_t current);
 
+/**
+ * \brief Write the values of a sensor to the (I2C/TWI) X-Bus. Since the TM1000 doesn't match
+ *        the requested address to the delivered address this function implements a round robin.	
+ */
 void spektel_write_sensor_data(void);
 
 /**
- * \brief Initialize TI/I2C and connection to Spetrum RC TM1000
+ * \brief Initialize TI/I2C and connection to Spektrum RC TM1000
  *
  * \param twis The TWI module.
- * \param spektel_options_t Spektel options.
+ * \param opt Spektel options.
  *
  * \return status
  */

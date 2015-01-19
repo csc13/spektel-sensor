@@ -26,6 +26,19 @@ void board_init(void)
 		ioport_set_pin_dir(LED_GREEN, IOPORT_DIR_OUTPUT);
 		ioport_set_pin_dir(LED_RED, IOPORT_DIR_OUTPUT);
 	#endif
+	
+	#ifdef BOARD_REV_B
+		// USART
+		PORTD_REMAP = USARTD_REMAP;
+		PORTD_DIRSET = PIN7_bm;
+		
+		//Button
+		ioport_set_pin_dir(BUT_1, IOPORT_DIR_INPUT);
+		
+		//LEDs
+		ioport_set_pin_dir(LED_GREEN, IOPORT_DIR_OUTPUT);
+		ioport_set_pin_dir(LED_RED, IOPORT_DIR_OUTPUT);
+	#endif
 
 	#ifdef ENABLE_USART	
 	// startup USART

@@ -89,8 +89,12 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 
 #include "spektel.h"
+#include "bmp180.h"
 #include "floating_average.h"
 #include "filter.h"
+#include "filter_32.h"
+#include "setup.h"
+#include "calc_measure.h"
 
 // ADC measurement data structures
 volatile bool measure_cycle = false;
@@ -103,9 +107,14 @@ tFloatAvgFilter cur_filter1 = { {0}, 0 };  //filter level 1
 tFloatAvgFilter cur_filter2 = { {0}, 0 };  //filter level 2
 tFloatAvgFilter cur_filter3 = { {0}, 0 };  //filter level 3
 	
-//simple lowpass filter	
-tSimpleLowpassReg lowpass_reg = { 0, 0 };
+//simple lowpass filter	for voltage
+tSimpleLowpassReg lowpass_reg_volt = { 0, 0 };
 	
+//simple lowpass filter for pressure	
+tSimpleLowpassReg32 lowpass_reg_prs = { 0, 0 };
+bool startup = true;
+uint8_t sample_count = 0; //Counts samples in cycles of 255 for temperature measurements	
+		
 // variables for capacity calculation
 uint16_t cur_adc_res[2] = { ADC_B, ADC_B }; // This is power = 0
 uint32_t time[2] = { 0 };
@@ -114,6 +123,9 @@ uint32_t cap_mAms = 0;
 uint16_t cap_mAh = 0;
 uint16_t cap_min = 0;
 
+// variables for climb rate calculation
+int32_t cl_prs[2] = {0, 0};
+int32_t alt_dif = 0;	
 	
 // Spektrum RC data structures	
 volatile spektel_sensor_current_t cur = { 0 };
@@ -147,7 +159,7 @@ static void tc_init(void)
 	/* Configure period*/
 	tc45_write_period(&TIMER_SENS, TIMER_SENS_RESOLUTION / TIMER_SENS_PER);
 
-	/* Configure CCA to occur at 250Hz */
+	/* Configure CCA to occur at half the period */
 	tc45_write_cc(&TIMER_SENS, TC45_CCA, TIMER_SENS_RESOLUTION / TIMER_SENS_PER / 2);
 
 	/* Enable CCA channels */
@@ -179,13 +191,21 @@ static void adcch_set_cur_measure(void) {
 	adcch_enable_interrupt(&adcch_conf);
 }
 
-static void adcch_set_volt_measure(void) {
+static uint16_t adcch_get_pin_measure(enum adcch_positive_input pin, enum adcch_sampnum sample) {
+	// Set ADC channel to voltage pin measurement
 	// Set ADC to ACS current pin and interrupt
-	adcch_set_input(&adcch_conf, ADC_MAIN_VOLTAGE_PIN, ADCCH_NEG_NONE, 1);
-	adcch_enable_averaging(&adcch_conf, ADC_VOLT_AVERAG_SAMP);
+	adcch_set_input(&adcch_conf, pin, ADCCH_NEG_NONE, 1);
+	adcch_enable_averaging(&adcch_conf, sample);
 	//adcch_set_interrupt_mode(&adcch_conf, ADCCH_MODE_COMPLETE); //complete conversion
 	//adcch_conf.intctrl |= 0x10; //set via conf_adc.h to MED
 	adcch_disable_interrupt(&adcch_conf);
+	adcch_write_configuration(&ADC_MAIN, ADC_MAIN_CH, &adcch_conf);
+
+	// Start ADC measurement
+	adc_start_conversion(&ADC_MAIN, ADC_MAIN_CH);
+	adc_wait_for_interrupt_flag(&ADC_MAIN, ADC_MAIN_CH);
+	
+	return adc_get_unsigned_result(&ADC_MAIN, ADC_MAIN_CH);	
 }
 
 static void adc_init(void) {
@@ -207,20 +227,41 @@ static void adc_init(void) {
 	adc_enable(&ADC_MAIN);
 }
 
-static void initPlotter(void) {
+static void calibration(void) {
+	// Initialize floating average filters
+	InitFloatAvg(&cur_filter1,  adcch_get_pin_measure(ADC_MAIN_VOLTAGE_PIN, ADC_VOLT_AVERAG_SAMP));   // Read the value for 0V voltage
+	//InitFloatAvg(&cur_filter2, adcch_get_pin_measure(ADC_MAIN_REF_VOLTAGE_PIN, ADC_REF_AVERAG_SAMP)); // Read the value for 2,048V voltage
+	InitFloatAvg(&cur_filter3, adcch_get_pin_measure(ADC_MAIN_CURRENT_PIN, ADC_CUR_AVERAG_SAMP));     // Read the value for 0A current
+	
+	for(uint8_t i = 0; i < 40 ; i++) {
+		AddToFloatAvg(&cur_filter1, adcch_get_pin_measure(ADC_MAIN_VOLTAGE_PIN, ADC_VOLT_AVERAG_SAMP)); // Read the value for 0V voltage
+		//AddToFloatAvg(&cur_filter2, adcch_get_pin_measure(ADC_MAIN_REF_VOLTAGE_PIN, ADC_REF_AVERAG_SAMP)); // Read the value for 2,048V voltage
+		AddToFloatAvg(&cur_filter3, adcch_get_pin_measure(ADC_MAIN_CURRENT_PIN, ADC_CUR_AVERAG_SAMP)); // Read the value for 0A current
+	}
+	
+	uint16_t volt_zero = GetOutputValue(&cur_filter1);   // value for 0V voltage
+	//uint16_t volt_ref = GetOutputValue(&cur_filter2);    // value for 2,048V voltage
+	uint16_t ACS758_zero = GetOutputValue(&cur_filter3); // value for 0A current
+	
+	//double lsb_res = 2.048D / (double)(volt_ref - volt_zero);	
+	saveCalibration(ACS758_zero + 1, volt_zero);
+}
+
+
+static void plotter_init(void) {
 	#if ARDUPLOT
-		printf("\nd %u %u %u %u %u %u\n", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val);
-		printf("n current volt1 volt2 cap1 cap2 measure\n");
-		printf("r current 0 5000 volt1 0 2600 volt2 0 2600 cap1 0 3000 cap2 0 55000 measure 0 4096\n");
-		printf("c current 255 255 255 volt1 0 0 255 volt2 0 255 0 cap1 255 0 0 cap2 0 255 255 measure 150 150 0\n");
+		printf("\nd %u %u %u %u %u %u %d %d\n", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val, vario.altitude, vario.climb_rate);
+		printf("n current volt1 volt2 cap1 cap2 measure, altitude, climbrt\n");
+		printf("r current 0 5000 volt1 0 2600 volt2 0 2600 cap1 0 3000 cap2 0 55000 measure 0 4096 altitude -2000 2000 climbrt -200 200\n");
+		printf("c current 255 255 255 volt1 0 0 255 volt2 0 255 0 cap1 255 0 0 cap2 0 255 255 measure 150 150 0 altitude 255 150 150 climbrt 150 255 150\n");
 	#endif
 }
 
 static void writeToPlotter(void) {
 	#if ARDUPLOT
-		printf("d %u %u %u %u %u %u\n", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val);
+		printf("d %u %u %u %u %u %u %d %d\n", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val, vario.altitude, vario.climb_rate);
 	#elif REALTIME_PLOTTER
-		printf("%u %u %u %u %u %u\r", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val);
+		printf("%u %u %u %u %u %u %d %d\r", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val, vario.altitude, vario.climb_rate);
 	#endif
 }
 
@@ -231,27 +272,48 @@ int main (void)
 	sleepmgr_init();
 	rtc_init();
 	
-	irq_initialize_vectors();
-	cpu_irq_enable();
-	
 	cli();
 	
 	spektel_init();
+			
 	evsys_init();
 	tc_init();
 	adc_init();
 		
 	EVSYS.CH3MUX = EVSYS_CHMUX_TCC4_CCA_gc;  //Connect TCC4 Compare interrupt to event channel 3 (used to trigger ADC)
 	tc45_set_resolution(&TIMER_SENS, TIMER_SENS_RESOLUTION);
-	
+
 	sei();
+	
+	irq_initialize_vectors();
+	cpu_irq_enable();
+	
+	// Initialize BMP180 module
+	bmp180_init();
 		
 	// set LEDs
 	ioport_set_pin_level(LED_GREEN, 1);
 	ioport_set_pin_level(LED_RED, 0);
 	
+	// If button is pressed on startup enter setup mode
+	 if( ioport_get_pin_level(BUT_1) == true ) { 
+		 button_setup();
+		 calibration();
+	 }
+	 
+	 // Read calibration values
+	 uint16_t _adc_b = read_adc_b();
+	 uint16_t _adc_usig_base = read_adc_usig_base();
+	 
+	 if(_adc_b > 400 && _adc_b < 800 && _adc_usig_base > 80 && _adc_usig_base < 300) {
+		init_calc(_adc_b, _adc_usig_base);
+	 }
+	
 	// Initialize capacity output
-	power.cap1 = BAT_CAP;
+	power.cap1 = readCapa();
+	if(power.cap1 == 0 || power.cap1 == 0xFFFF) {
+		power.cap1 = BAT_CAP; }
+	
 	spektel_write_powerbox_sens(power);
 	cap_min = BAT_CAP * 0.2;  //calculate bat_mi alarm level to 20% capacity left
 	
@@ -260,14 +322,20 @@ int main (void)
 	InitFloatAvg(&cur_filter2, ACS_B);
 	InitFloatAvg(&cur_filter3, ACS_B);
 	
-	// Initialize simple lowpass filter
-	init_simple_lowpass(&lowpass_reg, 4);
+	// Initialize simple lowpass filter for voltage
+	init_simple_lowpass(&lowpass_reg_volt, 4);
+	
+	// Initialize simple lowpass filter for altitude
+	init_simple_lowpass_32(&lowpass_reg_prs, 5);
+	
+	//Start first pressure measurement
+	bmp180_start_pressure_measurement();
 	
 	// Initialize plotter
-	initPlotter();
-		
+	plotter_init();
+
 	while(1) {
-		
+				
 		sleepmgr_enter_sleep(); //sleep up to next interrupt
 		
 		// Check if this is a wake up from the ADC current measurement. There will be a lot of TWI interrupts
@@ -294,32 +362,64 @@ int main (void)
 					power.cap1_alarm = true;
 				}
 			}
-	
-			// Set ADC channel to voltage pin measurement
-			adcch_set_volt_measure();
-			adcch_write_configuration(&ADC_MAIN, ADC_MAIN_CH, &adcch_conf);
+
+			// Get main battery voltage pin measure
+			power.volt1 = calc_main_mV(simple_lowpass(&lowpass_reg_volt, adcch_get_pin_measure(ADC_MAIN_VOLTAGE_PIN, ADC_VOLT_AVERAG_SAMP)));
 			
-			// Start ADC measurement
-			adc_start_conversion(&ADC_MAIN, ADC_MAIN_CH);
-			adc_wait_for_interrupt_flag(&ADC_MAIN, ADC_MAIN_CH);
-			//filter
-			power.volt1 = calc_main_mV(simple_lowpass(&lowpass_reg, adc_get_unsigned_result(&ADC_MAIN, ADC_MAIN_CH)));
-		
 			// ADC channel back to current measurement and enable interrupt
 			adcch_set_cur_measure();
 			adcch_write_configuration(&ADC_MAIN, ADC_MAIN_CH, &adcch_conf);
-		
+			
+			// The BMP180 requires measuring and reading the actual temperature from the device for temp. drift compensation
+			// So we do a temperature reading every 32nd measurement. We use a rolling counter
+			if((sample_count & 0x3F) == 0x3F) {
+				bmp180_calc_temperature();
+			}
+			else {
+				// Read and calculate pressure from BMP180
+				bmp180_calc_pressure();  //Read and calculate last measurement from BMP180
+				cl_prs[act] = simple_lowpass_32(&lowpass_reg_prs, get_pressure()); //Use a low pass for the pressure
+				vario.altitude = calc_altitude(cl_prs[act]);
+				
+				if((sample_count == 0xFF) && startup) {
+					set_base_pressure(cl_prs[act]);
+					startup = false;
+				}
+				
+				// Climb rate is
+				// (Actual hight - Last hight) / time in seconds
+				/*alt_dif = ((int32_t)(cl_prs[act] - cl_prs[!act])) * 1000;
+				if( alt_dif != 0 ) {
+					alt_dif = alt_dif / ((int32_t)(time[act] - time[!act]));
+					vario.climb_rate = simple_lowpass(&lowpass_reg_clbrt, (int16_t)alt_dif );
+				}*/
+			}
+			
+			
+			sample_count++; //overrun is wanted	
+			// Trigger the next measurement of the BMP180
+			if((sample_count & 0x3F) == 0x3F) {
+				bmp180_start_temperature_measurement();
+			}
+			else {
+				bmp180_start_pressure_measurement(); //Since the measure cycle is triggered every 40ms its enough time for the BMP180 in ultrahigh precision mode
+			}
+					
 			measure_cycle = false;
 		
 			// write the values out
 			spektel_write_powerbox_sens(power);
 			spektel_write_current_sens(cur);
+			spektel_write_vario_sens(vario);
 			
 			 writeToPlotter();
-		
-			 //ioport_toggle_pin_level(LED_GREEN);
 		}	
-
+		
+			 if( ioport_get_pin_level(BUT_1) == true ) {
+				 set_base_pressure(cl_prs[act]);
+			 }
+	}
+	
 /* code for Spektrum XBus monitoring via LED
 		ioport_set_pin_level(LED_GREEN, !spektel_getStatus());
 		r = spektel_getResult();
@@ -332,9 +432,7 @@ int main (void)
 				printf("Result status changed: %x", r);
 				rlast = r;
 			}
-		}
-*/		
-			
+		}			
 		
-	}		
+	}		*/
 }

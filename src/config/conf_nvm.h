@@ -1,9 +1,9 @@
 /**
  * \file
  *
- * \brief Chip-specific system clock manager configuration
+ * \brief Non volatile memories management for XMEGA devices
  *
- * Copyright (c) 2011-2013 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2012 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -40,45 +40,8 @@
  * \asf_license_stop
  *
  */
-#ifndef CONF_CLOCK_H_INCLUDED
-#define CONF_CLOCK_H_INCLUDED
 
-//#define CONFIG_SYSCLK_SOURCE        SYSCLK_SRC_RC2MHZ
-#define CONFIG_SYSCLK_SOURCE        SYSCLK_SRC_RC32MHZ
-//#define CONFIG_SYSCLK_SOURCE        SYSCLK_SRC_RC32KHZ
-//#define CONFIG_SYSCLK_SOURCE        SYSCLK_SRC_XOSC
-//#define CONFIG_SYSCLK_SOURCE        SYSCLK_SRC_PLL
+#ifndef CONF_NVM_H_INCLUDED
+#define CONF_NVM_H_INCLUDED
 
-/* Fbus = Fsys / (2 ^ BUS_div) */
-#define CONFIG_SYSCLK_PSADIV          SYSCLK_PSADIV_1
-#define CONFIG_SYSCLK_PSBCDIV         SYSCLK_PSBCDIV_1_1
-
-//#define CONFIG_PLL0_SOURCE          PLL_SRC_XOSC
-//#define CONFIG_PLL0_SOURCE          PLL_SRC_RC2MHZ
-//#define CONFIG_PLL0_SOURCE          PLL_SRC_RC32MHZ
-
-/* Fpll = (Fclk * PLL_mul) / PLL_div */
-//#define CONFIG_PLL0_MUL             (24000000UL / BOARD_XOSC_HZ)
-//#define CONFIG_PLL0_DIV             1
-
-/* External oscillator frequency range */
-/** 0.4 to 2 MHz frequency range */
-//#define CONFIG_XOSC_RANGE XOSC_RANGE_04TO2
-/** 2 to 9 MHz frequency range */
-//#define CONFIG_XOSC_RANGE XOSC_RANGE_2TO9
-/** 9 to 12 MHz frequency range */
-//#define CONFIG_XOSC_RANGE XOSC_RANGE_9TO12
-/** 12 to 16 MHz frequency range */
-//#define CONFIG_XOSC_RANGE XOSC_RANGE_12TO16
-
-/* DFLL autocalibration */
-#define CONFIG_OSC_AUTOCAL_RC2MHZ_REF_OSC  OSC_ID_RC32KHZ
-//#define CONFIG_OSC_AUTOCAL_RC32MHZ_REF_OSC OSC_ID_XOSC
-
-/* Use to enable and select RTC clock source */
-#define CONFIG_RTC_SOURCE           SYSCLK_RTCSRC_ULP
-
-// Used for _delay_ms
-# define F_CPU 32000000UL
-
-#endif /* CONF_CLOCK_H_INCLUDED */
+#endif /* CONF_NVM_H_INCLUDED */
