@@ -49,8 +49,3 @@ Please see https://github.com/sebnil/RealtimePlotter.git and see https://github.
 
 #### 2015-01-19: Added support for the REV_B board
 This includes the smaller board, BMP180 altitude measurement, setup button, self calibration.
-<<<<<<< HEAD
-
-=======
->>>>>>> FETCH_HEAD
-
