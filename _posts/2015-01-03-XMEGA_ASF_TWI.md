@@ -165,8 +165,8 @@ I will get into more detail later on.
 {% highlight html linenos %}
 TWI_SlaveInitializeModule(&slave, twi_slave_address, TWI_SLAVE_INTLVL_MED_gc);
 	
-//TWI address for Current, Powerbox and Vario 
-TWIC.SLAVE.ADDRMASK = (0x4B << 1) ;  //mask (1) all address bits, which are different between all used sensors
+//TWI address for Current, Powerbox and Vario and flight pack capacity
+TWIC.SLAVE.ADDRMASK = (0x7F << 1) ;  //mask (1) all address bits, which are different between all used sensors
 
 for (uint8_t i = 0; i < TWIS_SEND_BUFFER_SIZE; i++) {
 	slave.receivedData[i] = 0;
@@ -186,8 +186,9 @@ We leave ADDREN (Bit 0 of the same register) to zero. The mask is calculated as 
 0000 0011	Current Sensor address
 0000 1010	Powerbox Sensor address
 0100 0000   Vario Sensor address
+0011 0100   Flight Cap Sensor address
 -----------------------------------
-0100 1011   = 0x4B as Address Mask
+0111 1111   = 0x7F as Address Mask
 {% endhighlight %}
 
 The last part of the code initializes the receive buffer.

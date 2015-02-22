@@ -242,8 +242,8 @@ I will get into more detail later on.</p>
 
 <div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> TWI_SlaveInitializeModule(<span class="err">&amp;</span>slave, twi_slave_address, TWI_SLAVE_INTLVL_MED_gc);
 <span class="lineno">2</span> 	
-<span class="lineno">3</span> //TWI address for Current, Powerbox and Vario 
-<span class="lineno">4</span> TWIC.SLAVE.ADDRMASK = (0x4B <span class="err">&lt;</span><span class="nt">&lt; 1</span><span class="err">)</span> <span class="err">;</span>  <span class="err">//</span><span class="na">mask</span> <span class="err">(</span><span class="na">1</span><span class="err">)</span> <span class="na">all</span> <span class="na">address</span> <span class="na">bits</span><span class="err">,</span> <span class="na">which</span> <span class="na">are</span> <span class="na">different</span> <span class="na">between</span> <span class="na">all</span> <span class="na">used</span> <span class="na">sensors</span>
+<span class="lineno">3</span> //TWI address for Current, Powerbox and Vario and flight pack capacity
+<span class="lineno">4</span> TWIC.SLAVE.ADDRMASK = (0x7F <span class="err">&lt;</span><span class="nt">&lt; 1</span><span class="err">)</span> <span class="err">;</span>  <span class="err">//</span><span class="na">mask</span> <span class="err">(</span><span class="na">1</span><span class="err">)</span> <span class="na">all</span> <span class="na">address</span> <span class="na">bits</span><span class="err">,</span> <span class="na">which</span> <span class="na">are</span> <span class="na">different</span> <span class="na">between</span> <span class="na">all</span> <span class="na">used</span> <span class="na">sensors</span>
 <span class="lineno">5</span> 
 <span class="lineno">6</span> <span class="na">for</span> <span class="err">(</span><span class="na">uint8_t</span> <span class="na">i =</span><span class="err"> </span><span class="s">0;</span> <span class="na">i</span> <span class="err">&lt;</span> <span class="na">TWIS_SEND_BUFFER_SIZE</span><span class="err">;</span> <span class="na">i</span><span class="err">++)</span> <span class="err">{</span>
 <span class="lineno">7</span> 	<span class="na">slave</span><span class="err">.</span><span class="na">receivedData</span><span class="err">[</span><span class="na">i</span><span class="err">]</span> <span class="err">=</span> <span class="na">0</span><span class="err">;</span>
@@ -262,8 +262,9 @@ match.”</p>
 <div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> 0000 0011	Current Sensor address
 <span class="lineno">2</span> 0000 1010	Powerbox Sensor address
 <span class="lineno">3</span> 0100 0000   Vario Sensor address
-<span class="lineno">4</span> -----------------------------------
-<span class="lineno">5</span> 0100 1011   = 0x4B as Address Mask</code></pre></div>
+<span class="lineno">4</span> 0011 0100   Flight Cap Sensor address
+<span class="lineno">5</span> -----------------------------------
+<span class="lineno">6</span> 0111 1111   = 0x7F as Address Mask</code></pre></div>
 
 <p>The last part of the code initializes the receive buffer.</p>
 
@@ -589,6 +590,11 @@ at the end. Either the BMP180 or the ASF gets it wrong!?  </p>
         <p class="list-title">Recent Posts</p>
          <!-- for1 -->
             <li>
+              <span class="recent-title"><a href="/articles/Getting_the_parts" title="Getting the parts">Getting the parts </a></span>
+              <span class="date">Jan 25, 2015</span>
+            </li>
+         <!-- for1 -->
+            <li>
               <span class="recent-title"><a href="/articles/XMEGA_ASF_TWI" title="XMEGA, ASF and TWI/I2C">XMEGA, ASF and TWI/I2C </a></span>
               <span class="date">Jan 03, 2015</span>
             </li>
@@ -596,11 +602,6 @@ at the end. Either the BMP180 or the ASF gets it wrong!?  </p>
             <li>
               <span class="recent-title"><a href="/articles/Sensor_setup" title="Sensor setup">Sensor setup </a></span>
               <span class="date">Dec 31, 2014</span>
-            </li>
-         <!-- for1 -->
-            <li>
-              <span class="recent-title"><a href="/articles/Software_part_1" title="Firmware Part 1">Firmware Part 1 </a></span>
-              <span class="date">Dec 23, 2014</span>
             </li>
         
       </ol>

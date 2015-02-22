@@ -5,13 +5,94 @@
 <generator uri="https://github.com/mojombo/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2015-01-19T00:48:30+01:00</updated>
+<updated>2015-02-22T00:57:15+01:00</updated>
 <id>/</id>
 <author>
   <name>Christian</name>
   <uri>/</uri>
   <email>git@cescholz.de</email>
 </author>
+
+
+<entry>
+  <title type="html"><![CDATA[Getting the parts]]></title>
+  <link rel="alternate" type="text/html" href="/articles/Getting_the_parts" />
+  <id>/articles/Getting_the_parts</id>
+  <published>2015-01-25T00:00:00+01:00</published>
+  <updated>2015-01-25T00:00:00+01:00</updated>
+  <author>
+    <name>Christian</name>
+    <uri></uri>
+    <email>git@cescholz.de</email>
+  </author>
+  <content type="html">&lt;p&gt;For all not having a network of suppliers, ordering all the parts can be a little bit painful.
+At least in germany I didn’t find a supplier having all parts even for this simple project.
+Then some of the professional suppliers refuse to sell to private persons. And if they do, they
+add additional cost for small orders. Ok, at least that is understandable. Electronic 
+suppliers for private business like &lt;a href=&quot;http://www.conrad.de&quot;&gt;conrad.de&lt;/a&gt; or &lt;a href=&quot;http://www.reichelt.de&quot;&gt;reichelt.de&lt;/a&gt; 
+on the other side have higher prices per piece.&lt;/p&gt;
+
+&lt;p&gt;The main costs of the sensor are produced by only a few components. The hall sensor is clearly
+outstanding and probably the reason why many sensors rely on a shunt resistor solution. 
+You get the sensor from &lt;a href=&quot;http://farnell.com&quot;&gt;farnell.com&lt;/a&gt; or a partner selling to private 
+persons like &lt;a href=&quot;http://hbe-shop.de&quot;&gt;hbe-shop.de&lt;/a&gt;. The BMP180 and many other parts can be order
+for a good price at &lt;a href=&quot;http://www.mouser.de&quot;&gt;mouser.de&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Here you get a list of the main parts and a possible supplier. All other parts are available
+by all of them (and will cost 2€ in total).&lt;/p&gt;
+
+&lt;table width=&quot;100%&quot; style=&quot;border:1px solid #000000; padding:5px; border-collapse:collapse; table-layout:auto;&quot;&gt;
+&lt;thead style=&quot;border:1px solid #000000; padding:5px; font-weight:bold;&quot;&gt;
+ &lt;tr style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;
+    &lt;th style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;Device&lt;/th&gt;
+    &lt;th style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;Price&lt;/th&gt;
+    &lt;th style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;Supplier&lt;/th&gt;
+    &lt;th style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;Order code&lt;/th&gt;
+  &lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;
+  &lt;tr style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;XMEGA32E5&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;2.26 €&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;mouser.de&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;556-ATXMEGA32E5-AU&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;BMP180&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;3.36 €&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;mouser.de&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;262-BMP180&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;MCP1826S-3302E/DB&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;0.67 €&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;mouser.de&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;579-MCP1826S-3302EDB&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;ACS758LCB-100U&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;8.93 €&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;hbe-shop.de&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;2057427&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;JST B4B-ZR&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;0.93 €&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;conrad.de&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;740615-62&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;JST S4B-ZR&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;0.65 €&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;conrad.de&lt;/td&gt;
+    &lt;td style=&quot;border:1px solid #000000; padding:5px;&quot;&gt;741180-62&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+  &lt;p&gt;&lt;a href=&quot;/articles/Getting_the_parts&quot;&gt;Getting the parts&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on January 25, 2015.&lt;/p&gt;</content>
+</entry>
 
 
 <entry>
@@ -176,8 +257,8 @@ I will get into more detail later on.&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; TWI_SlaveInitializeModule(&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;slave, twi_slave_address, TWI_SLAVE_INTLVL_MED_gc);
 &lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; 	
-&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; //TWI address for Current, Powerbox and Vario 
-&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; TWIC.SLAVE.ADDRMASK = (0x4B &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt; 1&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;;&lt;/span&gt;  &lt;span class=&quot;err&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;mask&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;all&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;address&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;bits&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;which&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;are&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;different&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;between&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;all&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;used&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;sensors&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; //TWI address for Current, Powerbox and Vario and flight pack capacity
+&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; TWIC.SLAVE.ADDRMASK = (0x7F &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt; 1&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;;&lt;/span&gt;  &lt;span class=&quot;err&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;mask&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;all&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;address&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;bits&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;which&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;are&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;different&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;between&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;all&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;used&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;sensors&lt;/span&gt;
 &lt;span class=&quot;lineno&quot;&gt;5&lt;/span&gt; 
 &lt;span class=&quot;lineno&quot;&gt;6&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;uint8_t&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;i =&lt;/span&gt;&lt;span class=&quot;err&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;0;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;TWIS_SEND_BUFFER_SIZE&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;++)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;{&lt;/span&gt;
 &lt;span class=&quot;lineno&quot;&gt;7&lt;/span&gt; 	&lt;span class=&quot;na&quot;&gt;slave&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;receivedData&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;;&lt;/span&gt;
@@ -196,8 +277,9 @@ match.”&lt;/p&gt;
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; 0000 0011	Current Sensor address
 &lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; 0000 1010	Powerbox Sensor address
 &lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; 0100 0000   Vario Sensor address
-&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; -----------------------------------
-&lt;span class=&quot;lineno&quot;&gt;5&lt;/span&gt; 0100 1011   = 0x4B as Address Mask&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; 0011 0100   Flight Cap Sensor address
+&lt;span class=&quot;lineno&quot;&gt;5&lt;/span&gt; -----------------------------------
+&lt;span class=&quot;lineno&quot;&gt;6&lt;/span&gt; 0111 1111   = 0x7F as Address Mask&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;The last part of the code initializes the receive buffer.&lt;/p&gt;
 
