@@ -20,7 +20,8 @@ TWI_Slave_t slave;
 uint8_t toggle = 0;
 spektel_sensor_data_t current_data = { {CURRENT_SENS, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00} };
 spektel_sensor_data_t powerbox_data = { {POWERBOX_SENS, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00} };
-spektel_sensor_data_t vario_data = { {VARIO_SENS, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00} };		
+spektel_sensor_data_t vario_data = { {VARIO_SENS, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00} };
+spektel_sensor_data_t flight_cap_data = { {FLIGHT_CAP_SENS, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00} };				
 
 
 void spektel_write_current_sens(spektel_sensor_current_t current) {
@@ -54,12 +55,35 @@ void spektel_write_powerbox_sens(spektel_sensor_powerbox_t powerbox) {
 
 void spektel_write_vario_sens(spektel_sensor_vario_t vario) {
 	// altitude in 0.1m
-	// climb rate in 0.1 m/s
+	// climb rates in 0.1 m/s with different averages
 	vario_data.byte[0] = VARIO_SENS; // Vario
 	vario_data.byte[2] = (vario.altitude >> 8);
 	vario_data.byte[3] = vario.altitude;
-	vario_data.byte[4] = (vario.climb_rate >> 8);
-	vario_data.byte[5] = vario.climb_rate;
+	vario_data.byte[4] = (vario.climb_rate_250ms >> 8);
+	vario_data.byte[5] = vario.climb_rate_250ms;
+	vario_data.byte[6] = (vario.climb_rate_500ms >> 8);
+	vario_data.byte[7] = vario.climb_rate_500ms;
+	vario_data.byte[8] = (vario.climb_rate_1s >> 8);
+	vario_data.byte[9] = vario.climb_rate_1s;
+	vario_data.byte[10] = (vario.climb_rate_1_5s >> 8);
+	vario_data.byte[11] = vario.climb_rate_1_5s;
+	vario_data.byte[12] = (vario.climb_rate_2s >> 8);
+	vario_data.byte[13] = vario.climb_rate_2s;
+	vario_data.byte[14] = (vario.climb_rate_3s >> 8);
+	vario_data.byte[15] = vario.climb_rate_3s;		
+}
+
+void spektel_write_flight_cap_sens(spektel_sensor_flight_cap_t flight_cap) {
+	// current in 0.1A
+	// capacity in mAh (used capacity, NOT left battery capacity)
+	// temperature in 0.1C
+	flight_cap_data.byte[0] = FLIGHT_CAP_SENS; // Flight pack capacity
+	flight_cap_data.byte[2] = flight_cap.current;
+	flight_cap_data.byte[3] = (flight_cap.current >> 8);
+	flight_cap_data.byte[4] = flight_cap.cap;
+	flight_cap_data.byte[5] = (flight_cap.cap >> 8);
+	flight_cap_data.byte[6] = flight_cap.temp;
+	flight_cap_data.byte[7] = (flight_cap.temp >> 8);
 }
 
 /**
@@ -76,10 +100,12 @@ void spektel_write_sensor_data() {
 				slave.sendData[i] = current_data.byte[i];
 			} else if (toggle == 2) {
 				slave.sendData[i] = vario_data.byte[i];
-			}
+			} else if (toggle == 3) {
+				slave.sendData[i] = flight_cap_data.byte[i];
+			}	
 		}
 	}
-	if(++toggle > 2) toggle = 0;
+	if(++toggle > 3) toggle = 0;
 }
 
 register8_t spektel_getResult(void) {
@@ -112,6 +138,9 @@ bool spektel_init() {
 	if( VARIO_TEL ) {
 		twi_slave_address |= VARIO_SENS;
 	}
+	if( FLIGHT_CAP_TEL ) {
+		twi_slave_address |= FLIGHT_CAP_SENS;
+	}
 
 	
 	// Initialize ports
@@ -141,8 +170,8 @@ bool spektel_init() {
 	TWI_SlaveInitializeModule(&slave, twi_slave_address, TWI_SLAVE_INTLVL_MED_gc);
 	//TWIC.SLAVE.CTRLA |= 0x02; // PMEN: Promiscuous Mode Enable - address match logic disabled, react to everything
 	
-	//TWI address for Current, Powerbox and Vario 
-	TWIC.SLAVE.ADDRMASK = (0x4B << 1) ;  //mask (1) all address bits, which are different between all used sensors
+	//TWI address for Current, Powerbox, Vario and Flight pack capacity
+	TWIC.SLAVE.ADDRMASK = (0x7F << 1) ;  //mask (1) all address bits, which are different between all used sensors
 
 	for (uint8_t i = 0; i < TWIS_SEND_BUFFER_SIZE; i++) {
 		slave.receivedData[i] = 0;

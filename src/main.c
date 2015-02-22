@@ -131,6 +131,7 @@ int32_t alt_dif = 0;
 volatile spektel_sensor_current_t cur = { 0 };
 volatile spektel_sensor_powerbox_t power = { 0 };
 volatile spektel_sensor_vario_t vario = { 0 };
+volatile spektel_sensor_flight_cap_t flight_cap = { 0 };
 
 static void evsys_init(void) {
 	sysclk_enable_module(SYSCLK_PORT_GEN, SYSCLK_EVSYS);
@@ -250,7 +251,7 @@ static void calibration(void) {
 
 static void plotter_init(void) {
 	#if ARDUPLOT
-		printf("\nd %u %u %u %u %u %u %d %d\n", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val, vario.altitude, vario.climb_rate);
+		printf("\nd %u %u %u %u %u %u %d %d\n", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val, vario.altitude, vario.climb_rate_250ms);
 		printf("n current volt1 volt2 cap1 cap2 measure, altitude, climbrt\n");
 		printf("r current 0 5000 volt1 0 2600 volt2 0 2600 cap1 0 3000 cap2 0 55000 measure 0 4096 altitude -2000 2000 climbrt -200 200\n");
 		printf("c current 255 255 255 volt1 0 0 255 volt2 0 255 0 cap1 255 0 0 cap2 0 255 255 measure 150 150 0 altitude 255 150 150 climbrt 150 255 150\n");
@@ -259,9 +260,9 @@ static void plotter_init(void) {
 
 static void writeToPlotter(void) {
 	#if ARDUPLOT
-		printf("d %u %u %u %u %u %u %d %d\n", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val, vario.altitude, vario.climb_rate);
+		printf("d %u %u %u %u %u %u %d %d\n", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val, vario.altitude, vario.climb_rate_250ms);
 	#elif REALTIME_PLOTTER
-		printf("%u %u %u %u %u %u %d %d\r", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val, vario.altitude, vario.climb_rate);
+		printf("%u %u %u %u %u %u %d %d\r", cur.current, power.volt1, power.volt2, power.cap1, power.cap2, cur_mea_val, vario.altitude, vario.climb_rate_250ms);
 	#endif
 }
 
@@ -349,15 +350,18 @@ int main (void)
 			// finish capacity and current calculations
 			cap_mAms += calc_cap_mAms( cur_adc_res[!act], cur_adc_res[act], time[!act], time[act] );
 			cur.current = calc_mA(cur_adc_res[act]);
+			flight_cap.current = cur.current / 10;
 			power.cap2 = cur.current * 10;
+			
 			//power.volt2 = cur_adc_res[act];
 			
 			//Check for capacity overflow
 			if( cap_mAms >= 3600000 ) {
 				cap_mAms -= 3600000;  //- one mAh
 				cap_mAh++;			  //+ one mAh
+				flight_cap.cap = cap_mAh; //set capa used for flight pack capacity sensor
 				power.cap1--;         //subtract from capacity output
-				//Check for alarm: under BAT_MIN
+				//Check for alarm: under BAT_MIN (for powerbox sensor only)
 				if( power.cap1 <= cap_min ) {
 					power.cap1_alarm = true;
 				}
@@ -374,6 +378,7 @@ int main (void)
 			// So we do a temperature reading every 32nd measurement. We use a rolling counter
 			if((sample_count & 0x3F) == 0x3F) {
 				bmp180_calc_temperature();
+				flight_cap.temp = (int16_t)bmp180_get_temperature(); //This is the environment temperature, not the temperature of the flight pack!
 			}
 			else {
 				// Read and calculate pressure from BMP180
@@ -408,6 +413,7 @@ int main (void)
 			measure_cycle = false;
 		
 			// write the values out
+			spektel_write_flight_cap_sens(flight_cap);
 			spektel_write_powerbox_sens(power);
 			spektel_write_current_sens(cur);
 			spektel_write_vario_sens(vario);

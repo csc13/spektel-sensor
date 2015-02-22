@@ -41,6 +41,9 @@
 #define JETCAT_SENS 0x15
 #define GPS1_SENS 0x16
 #define GPS2_SENS 0x17  // Second half of GPS signal
+#define RX_CAP_SENS 0x18
+#define ESC_SENS 0x20
+#define FLIGHT_CAP_SENS 0x34 //Flight pack cap
 #define VARIO_SENS 0x40
 
 #define DATA_LENGTH     16
@@ -133,11 +136,37 @@ typedef struct spektel_sensor_vario_t {
    //! Set Altitude in 0.1m
    int16_t altitude;
    
-   //! Set Climb Rate in 0.1m/s
-   int16_t climb_rate;
+   //! Set Climb Rate average in 0.1m/s by last 250ms
+   int16_t climb_rate_250ms;
+   
+   //! Set Climb Rate average in 0.1m/s by last 500ms
+   int16_t climb_rate_500ms;
+	
+   //! Set Climb Rate average in 0.1m/s by last 1s
+   int16_t climb_rate_1s;	
+   
+   //! Set Climb Rate average in 0.1m/s by last 1.5s
+   int16_t climb_rate_1_5s;     
+
+   //! Set Climb Rate average in 0.1m/s by last 2s
+   int16_t climb_rate_2s;
+	
+   //! Set Climb Rate average in 0.1m/s by last 3s
+   int16_t climb_rate_3s;	  	  
    	
 } spektel_sensor_vario_t;
 
+typedef struct spektel_sensor_flight_cap_t {
+	//! Set current in 0.1A
+	uint16_t current;
+	
+	//! Set capacity in mAh
+	uint16_t cap;
+	
+	//! Set temp in 0.1C
+	int16_t temp;
+
+} spektel_sensor_flight_cap_t;
 
 //! Functions
 
@@ -155,7 +184,7 @@ void spektel_write_current_sens(spektel_sensor_current_t current);
  *
  * \param current Spektel Powerbox sensor structure
  */
-void spektel_write_powerbox_sens(spektel_sensor_powerbox_t current);
+void spektel_write_powerbox_sens(spektel_sensor_powerbox_t powerbox);
 
 /**
  * \brief Write values for the Vario sensor to the Spektrum TM1000 X-Bus connection
@@ -163,7 +192,15 @@ void spektel_write_powerbox_sens(spektel_sensor_powerbox_t current);
  *
  * \param current Spektel Vario sensor structure
  */
-void spektel_write_vario_sens(spektel_sensor_vario_t current);
+void spektel_write_vario_sens(spektel_sensor_vario_t vario);
+
+/**
+ * \brief Write values for the flight pack capacity sensor to the Spektrum TM1000 X-Bus connection
+ *		  The values get transmitted in one of the next times, the TM1000 polls for data	
+ *
+ * \param current Spektel flight pack capacity sensor structure
+ */
+void spektel_write_flight_cap_sens(spektel_sensor_flight_cap_t flight_cap);
 
 /**
  * \brief Write the values of a sensor to the (I2C/TWI) X-Bus. Since the TM1000 doesn't match
@@ -253,6 +290,26 @@ Data type = 0x17 GPS Sensor (always first GPS packet)
 8[08] Number of Sats (Decimal)
 9[09] Altitude in 1000m (Decimal)
 10[0A]-15[0F] Unused (But contains Data left in buffer)
+*/
+
+/* New sensors
+msg[ 0] = 0x34; // 0x34 Flight Pack Cap  0x18 RX Pack Cap  0x20 ESC
+msg[ 1] = 0;
+msg[ 2] = 0;    // A*10 low              mA/10 low         RPM/10 high
+msg[ 3] = 0;    // A*10 high             mA/10 high        RPM/10 low
+msg[ 4] = c;    // mAh low               mAh*10 low        V*100 high
+msg[ 5] = c>>8; // mAh high              mAh*10 high       V*100 low
+msg[ 6] = 0;    // Temp*10 low           V*100 low         FET Temp*10 low
+msg[ 7] = 0;    // Temp*10 high          V*100 high        FET Temp*10 high
+msg[ 8] = 0;    //                                         A*100 high
+msg[ 9] = 0;    //                                         A*100 low
+msg[10] = 0;    //                                         BEC Temp*10 high
+msg[11] = 0;    //                                         BEC Temp*10 low
+msg[12] = 0;    //                                         BEC A*10
+msg[13] = 0;    //                                         BEC V*20
+msg[14] = 0;    //                                         Throttle % * 2
+msg[15] = 0;    //                                         Output % * 2
+
 */
 
 #endif /* SPEKTEL_H_ */

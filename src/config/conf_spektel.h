@@ -19,5 +19,6 @@
 #define JETCAT_TEL false
 #define GPS_TEL false
 #define VARIO_TEL true
+#define FLIGHT_CAP_TEL true
 
 #endif /* CONF_SPEKTEL_H_ */

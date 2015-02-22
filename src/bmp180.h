@@ -110,11 +110,11 @@ uint8_t bmp180_start_temperature_measurement(void);
 uint8_t bmp180_calc_temperature(void);
 
 /**
- * \brief Return temperature
+ * \brief Return temperature in 0.1C
  *
  * \return temperature
  */
-uint32_t bmp180_get_temperature(void);
+int32_t bmp180_get_temperature(void);
 
 /**
  * \brief Start a pressure measurement on the Bosch BMP180 pressure sensor in 0.01mbar

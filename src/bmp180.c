@@ -170,7 +170,7 @@ uint8_t bmp180_calc_temperature()
 	return (error);
 }
 
-uint32_t bmp180_get_temperature() {
+int32_t bmp180_get_temperature() {
 	return bmp180->T;
 }
 

@@ -23,12 +23,13 @@ it calculates the used capacity, hight and climb rate.
 - Show used capacity of main battery
 - Show actual current of main battery
 - Show actual voltage of main battery
+- Show altitude
+- Programmable via on button (change the battery capacity)
 
 ### Planned functions
-- Show altitude
 - Show climb rate
 - Show cell voltages of main battery
-- Make it somehow programmable (change the current alarm for example)
+
 
 ### Project Structure
 - firmware (compiled firmware for XMEGA)
@@ -45,5 +46,8 @@ it calculates the used capacity, hight and climb rate.
 #### 2014-11-02: Added support for RealtimePlotter and arduplot
 Two two great serial monitors based on Processing (https://www.processing.org/).
 Please see https://github.com/sebnil/RealtimePlotter.git and see https://github.com/dahart/arduplot.git).
+
+#### 2015-01-19: Added support for the REV_B board
+This includes the smaller board, BMP180 altitude measurement, setup button, self calibration.
 
 
