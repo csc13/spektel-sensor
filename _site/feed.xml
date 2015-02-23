@@ -5,13 +5,157 @@
 <generator uri="https://github.com/mojombo/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2015-02-22T01:13:29+01:00</updated>
+<updated>2015-02-23T01:24:10+01:00</updated>
 <id>/</id>
 <author>
   <name>Christian</name>
   <uri>/</uri>
   <email>git@cescholz.de</email>
 </author>
+
+
+<entry>
+  <title type="html"><![CDATA[Firmware Part 2]]></title>
+  <link rel="alternate" type="text/html" href="/articles/Software_part_2" />
+  <id>/articles/Software_part_2</id>
+  <published>2015-02-22T00:00:00+01:00</published>
+  <updated>2015-02-22T00:00:00+01:00</updated>
+  <author>
+    <name>Christian</name>
+    <uri></uri>
+    <email>git@cescholz.de</email>
+  </author>
+  <content type="html">&lt;p&gt;Last year I promised to give a deeper look in the calculations. So to learn about the start 
+of a measurement go back to &lt;a href=&quot;/articles/Software_part_1&quot;&gt;Firmware Part 1&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;adc-base-values&quot;&gt;ADC base values&lt;/h3&gt;
+&lt;p&gt;Getting the XMEGA datasheet Analog Digital Converter part, it says that if running in single ended unsigned mode, the
+measurement value for GND is 205. This is to be able to measure a 0V voltage without problems.
+To get the exact value was a problem. By measurement it was around 160. So I implemented
+a self calibration (triggered by the button) to get the exact value at 0V. This variable
+is named &lt;code&gt;adc_usig_base&lt;/code&gt; and read from EEPROM.&lt;/p&gt;
+
+&lt;p&gt;The next needed value is the resolution for each bit (called Least Significant Bit).
+For 12bit resolution this is 0.4899mV/LSB (constant &lt;code&gt;ADC_MV_12RES&lt;/code&gt;).&lt;/p&gt;
+
+&lt;h3 id=&quot;measuring-the-voltage&quot;&gt;Measuring the voltage&lt;/h3&gt;
+&lt;p&gt;Is easy and just uses a voltage divider of 15.24 ((4.7K + 330) / 330) (constant &lt;code&gt;MAIN_RES_DIV&lt;/code&gt;)
+to get the voltage from up to 26V to the measurement range of the XMEGA up to Vcc/1.6 = 2.06V 
+in the single ended mode with 12bit resolution.&lt;/p&gt;
+
+&lt;p&gt;The calculation looks like the following:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; uint16_t calc_main_mV(uint16_t res) {
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; 	if( res &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;= adc_usig_base ) { 
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; 		return 0; //clipping if the input is less than adc_usig_base
+&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; 	}
+&lt;span class=&quot;lineno&quot;&gt;5&lt;/span&gt; 	else {
+&lt;span class=&quot;lineno&quot;&gt;6&lt;/span&gt; 		double _v = (double)((double)(res - adc_usig_base) * (double)ADC_MV_12RES * (double)MAIN_RES_DIV / 10);
+&lt;span class=&quot;lineno&quot;&gt;7&lt;/span&gt; 		return (uint16_t)_v;
+&lt;span class=&quot;lineno&quot;&gt;8&lt;/span&gt; 	}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We substract the &lt;code&gt;adc_usig_base&lt;/code&gt; to get the correct range and multiply the result with the 12bit 
+resolution to get mV. Then we need to multiply with the voltage divider to get the correct voltage.
+In this case we divide by 10 to get 10mV as the result unit as needed for the Powerbox voltage
+sensor.&lt;/p&gt;
+
+&lt;h3 id=&quot;measuring-the-current&quot;&gt;Measuring the current&lt;/h3&gt;
+&lt;p&gt;The main task of the sensor is to read and transmit the current of the main battery pack.
+Depending on the current running through the ACS758 hall sensor it outputs a voltage. This
+voltage depends on the operating voltage Vcc and the current. The ACS758 can be operated
+up to 5V and this is the voltage base in the datasheet. So we need to adjust all datasheet
+values be a factor of 3.3V/5V = 0.66. Many values differ by the device, so all constants are
+defined in the conf_board.h file (eg. to be able to change to a 200A version).&lt;/p&gt;
+
+&lt;h3 id=&quot;acs758-base-values&quot;&gt;ACS758 base values&lt;/h3&gt;
+&lt;p&gt;We use the 100U version with Vcc 3.3V. So we get the following values:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Voltage at Ip = 0A (no current) = 0.6V * 0.66 (for Vcc = 3.3V) = 0.396V (constant &lt;code&gt;ACS758_BASE&lt;/code&gt;)&lt;/li&gt;
+  &lt;li&gt;Sensitivity for 1A = 40mV at Vcc = 5V&lt;/li&gt;
+  &lt;li&gt;Sensitivity for 1A at Vcc = 3.3V = 26.4mV (by measuring its only 24mV) (constant &lt;code&gt;ACS758_RATE&lt;/code&gt;)&lt;/li&gt;
+  &lt;li&gt;Voltage at Ip = 100A = 0.0264V * 100 + 0.396V = 3.036V&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;That is close to the upper power rail of Vcc = 3.3V and to much for the XMEGA ADC. This
+can measure up to Vcc/1.6 = 2.06V in the single ended mode with 12bit resolution. So we need to
+apply a voltage divider to bring the Vout from the ACS758 to under 2.06V.&lt;/p&gt;
+
+&lt;p&gt;A voltage divider by 1.64 will do. I used a pair of 3K and 4.7K. This is calculated by
+(3K + 4.7K) / 4.7K = 1.638. This looks pretty exact, but don’t forget the resistors have
+tolerances by 1-2%. This is the constant &lt;code&gt;CUR_RES_DIV&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;To get the measurement at 0A we can use the self calibration procedure as well. The variable
+is called &lt;code&gt;adc_b&lt;/code&gt; and stored in the EEPROM. &lt;/p&gt;
+
+&lt;h3 id=&quot;calculate-the-current&quot;&gt;Calculate the current&lt;/h3&gt;
+&lt;p&gt;The formular looks like this:
+RES is the 12 bit result from the measurement.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;I = (((RES - ADC_USIG_BASE * ADC_MV_12RES * CUR_RES_DIV) - ACS758_BASE) / ACS758_RATE&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;We substract the ADC base value for 0V and mutliply this with the resolution and 
+voltage divider. From this voltage we substract the base voltage for 0A from the sensor and
+multiply with the sensitivity to get the current. Then with some mathematic transformations:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;I * ACS758_RATE = ((RES - ADC_USIG_BASE) * ADC_MV_12RES * CUR_RES_DIV) - ACS758_BASE&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;I * ACS758_RATE / ADC_MV_12RES / CUR_RES_DIV = (RES - ADC_USIG_BASE) - (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV)&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;I = (RES - ADC_USIG_BASE) - (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV) * (ADC_MV_12RES * CUR_RES_DIV / ACS758_RATE)&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;var: &lt;code&gt;ACS_B = (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV)&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;var: &lt;code&gt;ACS_R = (ADC_MV_12RES / ACS758_RATE * CUR_RES_DIV)&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;I = (RES - ADC_USIG_BASE - ACS_B) * ACS_R&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;var: &lt;code&gt;ADC_B = (ADC_USIG_BASE + ACS_B)&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;I = ((RES - ADC_B) * ACS_R&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;ACS_B&lt;/code&gt; and &lt;code&gt;ACS_R&lt;/code&gt; can be precalculated to save time. &lt;code&gt;ADC_B&lt;/code&gt; can be measured through self 
+calibration and is the same as &lt;code&gt;adc_b&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;ACS758_RATE&lt;/code&gt; will result in A. But for the telemetrie we want the result in 10mA or mA for
+the capacity measurement. This is done with &lt;code&gt;_M1&lt;/code&gt; for 10mA and &lt;code&gt;_M&lt;/code&gt; for mA.&lt;/p&gt;
+
+&lt;h3 id=&quot;problems-with-the-calculation&quot;&gt;Problems with the calculation&lt;/h3&gt;
+&lt;p&gt;The first problem is, that I use unsigned integer. But this is bad, if the there is some 
+drift and the measurement goes under &lt;code&gt;ADC_B&lt;/code&gt;. This can be solved by clipping all results
+below this value and simply return 0A.&lt;/p&gt;
+
+&lt;p&gt;The next problem is, that &lt;code&gt;ACS_R&lt;/code&gt; will be a floating point number like 0.0312. If we
+switch to 32bit integer and multiply all numbers by a factor x, so the 32bit field will
+not be exceeded, this will lead to greater precision of the calculation.
+At the end of the calculation we then divide again and get the correct value. If we
+multiply by an exponent of 2, we can divide with a simple and fast shift operation.
+To calculate the maximum factor in the 32bit limit I used an Excel sheet, you will
+find in the Github repository. The calculation the looks like:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;I = (((RES - ADC_B) * ACS_R_O) &amp;gt;&amp;gt; ACS_SHIFT&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;ACS_SHIFT&lt;/code&gt; = 5 divides by 32 for example.&lt;/p&gt;
+
+&lt;p&gt;In the calc_measure.c the whole thing looks like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; uint16_t calc_mA(uint16_t res) {
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; 	if( adc_b &amp;gt;= res ) { 
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; 		return 0; //clipping to zero
+&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; 	}
+&lt;span class=&quot;lineno&quot;&gt;5&lt;/span&gt; 	uint32_t _c = (( (uint32_t)( ((uint32_t)(res - adc_b)) * ((uint32_t)ACS_R_M1_O) ) ) &amp;gt;&amp;gt; ACS_SHIFT_M1);
+&lt;span class=&quot;lineno&quot;&gt;6&lt;/span&gt; 	return ((uint16_t)_c);
+&lt;span class=&quot;lineno&quot;&gt;7&lt;/span&gt; }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In this case the function returns the current in 10mA like required for the Spektrum
+telemetry Current sensor.&lt;/p&gt;
+
+&lt;p&gt;In the next round I will explain the capacity measurement. Then we need to add the time
+component to the current measurement.&lt;/p&gt;
+
+
+  &lt;p&gt;&lt;a href=&quot;/articles/Software_part_2&quot;&gt;Firmware Part 2&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on February 22, 2015.&lt;/p&gt;</content>
+</entry>
 
 
 <entry>
