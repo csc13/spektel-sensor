@@ -229,7 +229,7 @@ to react not to all. On the ATMEGA and Arduinos the following code works:</p>
 <span class="lineno">11</span> 	twi_slave_address |= VARIO_SENS;
 <span class="lineno">12</span> }</code></pre></div>
 
-<p><em>In my experience, his is not working for the XMEGA!</em> And two addresses can be applied with
+<p><em>In my experience, this is not working for the XMEGA!</em> And two addresses can be applied with
 respect to the datasheet, but not three.</p>
 
 <p>So the further code looks like this:</p>
@@ -249,7 +249,7 @@ I will get into more detail later on.</p>
 <span class="lineno">7</span> 	<span class="na">slave</span><span class="err">.</span><span class="na">receivedData</span><span class="err">[</span><span class="na">i</span><span class="err">]</span> <span class="err">=</span> <span class="na">0</span><span class="err">;</span>
 <span class="lineno">8</span> <span class="err">}</span></code></pre></div>
 
-<p>The magic is done by  writing  0x4B to the upper 7bits of the Slave ADDRMASK Address Mask Register.
+<p>The magic is done by  writing  0x7F to the upper 7bits of the Slave ADDRMASK Address Mask Register.
 The datasheet says:</p>
 
 <p>“If ADDREN is set to zero, ADDRMASK can be loaded with a 7-bit slave address mask. Each bit in ADDRMASK
@@ -262,9 +262,13 @@ match.”</p>
 <div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> 0000 0011	Current Sensor address
 <span class="lineno">2</span> 0000 1010	Powerbox Sensor address
 <span class="lineno">3</span> 0100 0000   Vario Sensor address
-<span class="lineno">4</span> 0011 0100   Flight Cap Sensor address
+<span class="lineno">4</span> 0011 0100   Flight Pack Capacity Sensor address
 <span class="lineno">5</span> -----------------------------------
 <span class="lineno">6</span> 0111 1111   = 0x7F as Address Mask</code></pre></div>
+
+<p><strong>EDIT:</strong> With the new Flight Pack Capacity Sensor and the used combination of sensors, the
+method here is of no use. This will react to every address and be the same as the
+<code>Promiscuous Mode</code> described above. I leave it in for explanation and change options.</p>
 
 <p>The last part of the code initializes the receive buffer.</p>
 
@@ -590,6 +594,11 @@ at the end. Either the BMP180 or the ASF gets it wrong!?  </p>
         <p class="list-title">Recent Posts</p>
          <!-- for1 -->
             <li>
+              <span class="recent-title"><a href="/articles/Software_part_3" title="Firmware Part 3">Firmware Part 3 </a></span>
+              <span class="date">Feb 23, 2015</span>
+            </li>
+         <!-- for1 -->
+            <li>
               <span class="recent-title"><a href="/articles/Software_part_2" title="Firmware Part 2">Firmware Part 2 </a></span>
               <span class="date">Feb 22, 2015</span>
             </li>
@@ -597,11 +606,6 @@ at the end. Either the BMP180 or the ASF gets it wrong!?  </p>
             <li>
               <span class="recent-title"><a href="/articles/Getting_the_parts" title="Getting the parts">Getting the parts </a></span>
               <span class="date">Jan 25, 2015</span>
-            </li>
-         <!-- for1 -->
-            <li>
-              <span class="recent-title"><a href="/articles/XMEGA_ASF_TWI" title="XMEGA, ASF and TWI/I2C">XMEGA, ASF and TWI/I2C </a></span>
-              <span class="date">Jan 03, 2015</span>
             </li>
         
       </ol>

@@ -115,7 +115,12 @@ but it’s still a miracle. There are capacity sensors available by the RC syste
 or by 3rd party companies, but not for Spektrum-RC. There are many projects, but non I found
 offers all informations for an easy rebuild.</p>
 
-<p>So this is my try.</p>
+<p><strong>EDIT 2015-02-23</strong>: Spektrum RC released their capacity sensor! And provided updates for the
+transmitters for this new Flight pack capacity sensor (this project supports this new
+sensor display as well). Then the JLog 2.6 from <a href="http://www.r2prototyping.ch/?page_id=709">R²prototyping GmbH</a>
+has support for Spektrum RC (great engineering).</p>
+
+<p>So nobody needs to build a DIY sensor. But you can, if you want!</p>
 
 <h3 id="the-project-setup">The project setup</h3>
 <p>The sensor is based on the flowing components:
@@ -126,8 +131,8 @@ offers all informations for an easy rebuild.</p>
 <p>The firmware was developed in C using Atmel Studio 6 and the Atmel ASF framework.</p>
 
 <pre><code>Note: The Spektrum RC TM1000 telemetry modul, a DSMX receiver with data port and a 
-transmitter with telemetry functions are required to use the sensor. Not all Spektrum RC telemetry able
-transmitters support all sensors. I use a DX9 for testing.
+transmitter with telemetry functions are required to use the sensor. Not all Spektrum RC 
+telemetry able transmitters support all sensors. I use a DX9 for testing.
 </code></pre>
 
 <h3 id="basic-functions">Basic functions</h3>
@@ -135,17 +140,17 @@ transmitters support all sensors. I use a DX9 for testing.
 it calculates the used capacity, hight and climb rate.</p>
 
 <ul>
-  <li>Show used capacity of main battery</li>
+  <li>Show used capacity of main  battery</li>
   <li>Show actual current of main battery</li>
   <li>Show actual voltage of main battery</li>
 </ul>
 
-<h3 id="planned-functions">Planned functions</h3>
+<h3 id="advanced-functions">Advanced functions</h3>
 <ul>
-  <li>Show altitude</li>
-  <li>Show climb rate</li>
-  <li>Show cell voltages of main battery</li>
-  <li>Make it somehow programmable (change the current alarm for example)</li>
+  <li>Show altitude (done)</li>
+  <li>Show climb rate (open)</li>
+  <li>Show cell voltages of main battery (maybe in the future)</li>
+  <li>Make it somehow programmable (change the current alarm for example) (done)</li>
 </ul>
 
 <h3 id="github-project-structure">GitHub project structure</h3>
@@ -187,6 +192,11 @@ So this hobby project is a little bit back to the roots to me.</p>
         <p class="list-title">Recent Posts</p>
          <!-- for1 -->
             <li>
+              <span class="recent-title"><a href="/articles/Software_part_3" title="Firmware Part 3">Firmware Part 3 </a></span>
+              <span class="date">Feb 23, 2015</span>
+            </li>
+         <!-- for1 -->
+            <li>
               <span class="recent-title"><a href="/articles/Software_part_2" title="Firmware Part 2">Firmware Part 2 </a></span>
               <span class="date">Feb 22, 2015</span>
             </li>
@@ -194,11 +204,6 @@ So this hobby project is a little bit back to the roots to me.</p>
             <li>
               <span class="recent-title"><a href="/articles/Getting_the_parts" title="Getting the parts">Getting the parts </a></span>
               <span class="date">Jan 25, 2015</span>
-            </li>
-         <!-- for1 -->
-            <li>
-              <span class="recent-title"><a href="/articles/XMEGA_ASF_TWI" title="XMEGA, ASF and TWI/I2C">XMEGA, ASF and TWI/I2C </a></span>
-              <span class="date">Jan 03, 2015</span>
             </li>
         
       </ol>

@@ -5,13 +5,113 @@
 <generator uri="https://github.com/mojombo/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2015-02-23T01:24:10+01:00</updated>
+<updated>2015-02-23T23:37:46+01:00</updated>
 <id>/</id>
 <author>
   <name>Christian</name>
   <uri>/</uri>
   <email>git@cescholz.de</email>
 </author>
+
+
+<entry>
+  <title type="html"><![CDATA[Firmware Part 3]]></title>
+  <link rel="alternate" type="text/html" href="/articles/Software_part_3" />
+  <id>/articles/Software_part_3</id>
+  <published>2015-02-23T00:00:00+01:00</published>
+  <updated>2015-02-23T00:00:00+01:00</updated>
+  <author>
+    <name>Christian</name>
+    <uri></uri>
+    <email>git@cescholz.de</email>
+  </author>
+  <content type="html">&lt;p&gt;In the last &lt;a href=&quot;/articles/Software_part_2&quot;&gt;post&lt;/a&gt; I explained the calculation of the current 
+using the ADC measurements. Now we come to the calculation of the used capacity.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-we-need&quot;&gt;What we need&lt;/h3&gt;
+&lt;p&gt;We want to get the battery capacity used in something like mAh. This is near to the used
+energy if we do the incorrect assumption, that the voltage is fixed. But for the Ampere-hour
+we don’t need the voltage.&lt;/p&gt;
+
+&lt;figure&gt;
+	&lt;img src=&quot;/images/ampere-hour.png&quot; /&gt;
+	&lt;figcaption&gt;We need to get the ampere-hour&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;What we want to calculate is the red area under the current curve. This is an integral
+over the time.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-we-have&quot;&gt;What we have&lt;/h3&gt;
+&lt;p&gt;The sensor measures the current in timer triggered intervals (in our case 40ms, but the
+time is variable in the calculation).&lt;/p&gt;
+
+&lt;figure&gt;
+	&lt;img src=&quot;/images/digitalized_current_curve.png&quot; /&gt;
+	&lt;figcaption&gt;The digitalized current curve&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;We store the actual measurement &lt;code&gt;res2&lt;/code&gt; and time of the measurement &lt;code&gt;time2&lt;/code&gt; and the 
+measurement before &lt;code&gt;res1&lt;/code&gt; and &lt;code&gt;time1&lt;/code&gt;. After each calculation &lt;code&gt;res2&lt;/code&gt; becomes &lt;code&gt;res1&lt;/code&gt; and
+a new measurement is done to &lt;code&gt;res2&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-calculation&quot;&gt;The calculation&lt;/h3&gt;
+&lt;p&gt;We need to get the surface of the blue tetragon. If we think of mirroring the same tetragon
+on top this is a rectangle with one edge &lt;code&gt;res1 + res2&lt;/code&gt; and the other &lt;code&gt;time2 - time1&lt;/code&gt;.&lt;/p&gt;
+
+&lt;figure&gt;
+	&lt;img src=&quot;/images/integral_Ah.png&quot; /&gt;
+	&lt;figcaption&gt;Integrating over time&lt;/figcaption&gt;
+&lt;/figure&gt;
+&lt;p&gt;This can be easily calculated.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Ah = (res1 +res2) * (time2 - time 1) / 2&lt;/code&gt;
+or
+&lt;code&gt;Ah = (res1 +res2) / 2 * (time2 - time 1)&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Now this is combined with the current calculation of the last &lt;a href=&quot;/articles/Software_part_2&quot;&gt;post&lt;/a&gt;.
+We check for clipping. Then calculate the y-axis and subtracting &lt;code&gt;adc_b&lt;/code&gt; for 0A.
+Because we then divide by 2 (here a right shift by 1 (&lt;code&gt;&amp;gt;&amp;gt; 1&lt;/code&gt;)) we need to double &lt;code&gt;adc_b&lt;/code&gt;
+(again done by a left shift). Then we multiply by the time period and use &lt;code&gt;ACS_R_M_O&lt;/code&gt; 
+and the correcting shift by &lt;code&gt;ACS_SHIFT_M&lt;/code&gt; to get mAms (miliamps by miliseconds).&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; uint32_t calc_cap_mAms(uint32_t res1, uint32_t res2, uint32_t time1, uint32_t time2) {
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; 	if( adc_b &amp;gt;= res1 ) res1 = adc_b; //clipping to zero
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; 	if( adc_b &amp;gt;= res2 ) res2 = adc_b; //clipping to zero
+&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; 	//for time in 1ms per bit
+&lt;span class=&quot;lineno&quot;&gt;5&lt;/span&gt; 	return (((uint32_t)(((res1 + res2 - (adc_b &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt; 1&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;&amp;gt; 1)  * (time2 - time1) * ACS_R_M_O)) &amp;gt;&amp;gt; ACS_SHIFT_M);	}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;So every 40ms we get a very small chunk of mAms used capacity. But even if we have a 32bit
+variable this is only 1193 mAh. Not enough for most models.&lt;/p&gt;
+
+&lt;h3 id=&quot;getting-the-result&quot;&gt;Getting the result&lt;/h3&gt;
+&lt;p&gt;To transform mAms to mAh we just need to divide the mAms by 3600,000. But if we do that
+every measurement with the small chunks, we wont get any result.
+So in the main.c the mAms are added and checked if its greater than 1 mAh = 3600,000 mAms.
+If so we increase the used capacity in mAh by 1 and substract 3600,000 from the mAms variable.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; //Check for capacity overflow
+&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt; if( cap_mAms &amp;gt;= 3600000 ) {
+&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt; 	cap_mAms -= 3600000;  //- one mAh
+&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt; 	cap_mAh++;			  //+ one mAh
+&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt; 	flight_cap.cap = cap_mAh; //set capa used for flight pack capacity sensor
+&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt; 	power.cap1--;         //subtract from capacity output
+&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt; 	//Check for alarm: under BAT_MIN (for powerbox sensor only)
+&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt; 	if( power.cap1 &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;= cap_min ) {
+&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt; 			power.cap1_alarm = true;
+&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; 	}
+&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt; }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Then we set the flight_cap.cap for the Spektrum Flight Pack Capacity sensor and power.cap1
+for the Powerbox Cap1 Sensor value (this is counted down). If power.cap1 goes under 20% of
+the full battery capacity the Powerbox alarm is triggered.&lt;/p&gt;
+
+&lt;p&gt;This is it for the core firmware functionality. There are additional setup functions and
+all the stuff around the BMP180 pressure / altitude sensor. I might or might not cover that
+in a later post.&lt;/p&gt;
+
+
+  &lt;p&gt;&lt;a href=&quot;/articles/Software_part_3&quot;&gt;Firmware Part 3&lt;/a&gt; was originally published by Christian at &lt;a href=&quot;&quot;&gt;spektel-sensor&lt;/a&gt; on February 23, 2015.&lt;/p&gt;</content>
+</entry>
 
 
 <entry>
@@ -102,7 +202,7 @@ multiply with the sensitivity to get the current. Then with some mathematic tran
 
 &lt;p&gt;&lt;code&gt;I * ACS758_RATE / ADC_MV_12RES / CUR_RES_DIV = (RES - ADC_USIG_BASE) - (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV)&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;code&gt;I = (RES - ADC_USIG_BASE) - (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV) * (ADC_MV_12RES * CUR_RES_DIV / ACS758_RATE)&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;I = ((RES - ADC_USIG_BASE) - (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV)) * (ADC_MV_12RES * CUR_RES_DIV / ACS758_RATE)&lt;/code&gt;&lt;/p&gt;
 
 &lt;p&gt;var: &lt;code&gt;ACS_B = (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV)&lt;/code&gt;&lt;/p&gt;
 
@@ -388,7 +488,7 @@ to react not to all. On the ATMEGA and Arduinos the following code works:&lt;/p&
 &lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt; 	twi_slave_address |= VARIO_SENS;
 &lt;span class=&quot;lineno&quot;&gt;12&lt;/span&gt; }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;&lt;em&gt;In my experience, his is not working for the XMEGA!&lt;/em&gt; And two addresses can be applied with
+&lt;p&gt;&lt;em&gt;In my experience, this is not working for the XMEGA!&lt;/em&gt; And two addresses can be applied with
 respect to the datasheet, but not three.&lt;/p&gt;
 
 &lt;p&gt;So the further code looks like this:&lt;/p&gt;
@@ -408,7 +508,7 @@ I will get into more detail later on.&lt;/p&gt;
 &lt;span class=&quot;lineno&quot;&gt;7&lt;/span&gt; 	&lt;span class=&quot;na&quot;&gt;slave&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;receivedData&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;;&lt;/span&gt;
 &lt;span class=&quot;lineno&quot;&gt;8&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;The magic is done by  writing  0x4B to the upper 7bits of the Slave ADDRMASK Address Mask Register.
+&lt;p&gt;The magic is done by  writing  0x7F to the upper 7bits of the Slave ADDRMASK Address Mask Register.
 The datasheet says:&lt;/p&gt;
 
 &lt;p&gt;“If ADDREN is set to zero, ADDRMASK can be loaded with a 7-bit slave address mask. Each bit in ADDRMASK
@@ -421,9 +521,13 @@ match.”&lt;/p&gt;
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; 0000 0011	Current Sensor address
 &lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; 0000 1010	Powerbox Sensor address
 &lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; 0100 0000   Vario Sensor address
-&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; 0011 0100   Flight Cap Sensor address
+&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; 0011 0100   Flight Pack Capacity Sensor address
 &lt;span class=&quot;lineno&quot;&gt;5&lt;/span&gt; -----------------------------------
 &lt;span class=&quot;lineno&quot;&gt;6&lt;/span&gt; 0111 1111   = 0x7F as Address Mask&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;EDIT:&lt;/strong&gt; With the new Flight Pack Capacity Sensor and the used combination of sensors, the
+method here is of no use. This will react to every address and be the same as the
+&lt;code&gt;Promiscuous Mode&lt;/code&gt; described above. I leave it in for explanation and change options.&lt;/p&gt;
 
 &lt;p&gt;The last part of the code initializes the receive buffer.&lt;/p&gt;
 

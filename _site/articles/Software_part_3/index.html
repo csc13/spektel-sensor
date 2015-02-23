@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Firmware Part 3 &#8211; spektel-sensor</title>
+<meta name="description" content="Capacity measurement">
+<meta name="keywords" content="Atmel, AVR, microcontroller, XMEGA, XMEGA32E5, firmware">
+
+
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Firmware Part 3 &#8211; spektel-sensor">
+<meta property="og:description" content="Capacity measurement">
+<meta property="og:url" content="/articles/Software_part_3">
+<meta property="og:site_name" content="spektel-sensor">
+
+
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="spektel-sensor Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Type -->
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Crimson+Text:400,400italic,700,700italic" rel='stylesheet' type='text/css' />
+<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="/assets/css/entypo.css" media="all">
+
+<!-- In order to use Calendas Plus, you must first purchase it. Then, create a font-face package using FontSquirrel.
+<link rel='stylesheet' href='/assets/cal.css' media='all' />
+-->
+
+
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/i.css">
+
+<!-- Fresh Squeezed jQuery -->
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- Load Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.6.2.custom.min.js"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<link rel="shortcut icon" href="/favicon.ico">
+
+<div id="bump">
+  <body class="">
+    <header class="site-header">
+      <div class="wrap">
+        <hgroup>
+          <h1><a href="/">spektel-sensor</a></h1>
+        </hgroup>
+        <a href="#nav" class="menu"><span class='icons'>☰</span></a>
+        <nav role="navigation">
+          <ul>
+            <li>
+              <a href="/" title="spektel-sensor">Home</a>
+            </li>
+            
+            
+                <li><a href="/about" >About</a></li>
+            
+                <li><a href="https://github.com/csc13/spektel-sensor" target="_blank">Github</a></li>
+            
+
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+
+<section class="article">
+
+
+  <div class="overlay"></div>
+  <div class="featured-image" style="background-image: url(/images/Board_REV_B.jpg)"></div>
+
+
+
+      <article class="wrap post">
+        <header class="post-header">
+          <hgroup>
+            <h1>Firmware Part 3</h1>
+            <p class="date">Feb 23, 2015</p>
+            <p class="intro">Capacity measurement</p>
+          </hgroup>
+        </header>
+    
+        <p>In the last <a href="/articles/Software_part_2">post</a> I explained the calculation of the current 
+using the ADC measurements. Now we come to the calculation of the used capacity.</p>
+
+<h3 id="what-we-need">What we need</h3>
+<p>We want to get the battery capacity used in something like mAh. This is near to the used
+energy if we do the incorrect assumption, that the voltage is fixed. But for the Ampere-hour
+we don’t need the voltage.</p>
+
+<figure>
+	<img src="/images/ampere-hour.png" />
+	<figcaption>We need to get the ampere-hour</figcaption>
+</figure>
+
+<p>What we want to calculate is the red area under the current curve. This is an integral
+over the time.</p>
+
+<h3 id="what-we-have">What we have</h3>
+<p>The sensor measures the current in timer triggered intervals (in our case 40ms, but the
+time is variable in the calculation).</p>
+
+<figure>
+	<img src="/images/digitalized_current_curve.png" />
+	<figcaption>The digitalized current curve</figcaption>
+</figure>
+
+<p>We store the actual measurement <code>res2</code> and time of the measurement <code>time2</code> and the 
+measurement before <code>res1</code> and <code>time1</code>. After each calculation <code>res2</code> becomes <code>res1</code> and
+a new measurement is done to <code>res2</code>.</p>
+
+<h3 id="the-calculation">The calculation</h3>
+<p>We need to get the surface of the blue tetragon. If we think of mirroring the same tetragon
+on top this is a rectangle with one edge <code>res1 + res2</code> and the other <code>time2 - time1</code>.</p>
+
+<figure>
+	<img src="/images/integral_Ah.png" />
+	<figcaption>Integrating over time</figcaption>
+</figure>
+<p>This can be easily calculated.</p>
+
+<p><code>Ah = (res1 +res2) * (time2 - time 1) / 2</code>
+or
+<code>Ah = (res1 +res2) / 2 * (time2 - time 1)</code></p>
+
+<p>Now this is combined with the current calculation of the last <a href="/articles/Software_part_2">post</a>.
+We check for clipping. Then calculate the y-axis and subtracting <code>adc_b</code> for 0A.
+Because we then divide by 2 (here a right shift by 1 (<code>&gt;&gt; 1</code>)) we need to double <code>adc_b</code>
+(again done by a left shift). Then we multiply by the time period and use <code>ACS_R_M_O</code> 
+and the correcting shift by <code>ACS_SHIFT_M</code> to get mAms (miliamps by miliseconds).</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> uint32_t calc_cap_mAms(uint32_t res1, uint32_t res2, uint32_t time1, uint32_t time2) {
+<span class="lineno">2</span> 	if( adc_b &gt;= res1 ) res1 = adc_b; //clipping to zero
+<span class="lineno">3</span> 	if( adc_b &gt;= res2 ) res2 = adc_b; //clipping to zero
+<span class="lineno">4</span> 	//for time in 1ms per bit
+<span class="lineno">5</span> 	return (((uint32_t)(((res1 + res2 - (adc_b <span class="err">&lt;</span><span class="nt">&lt; 1</span><span class="err">))</span> <span class="nt">&gt;</span>&gt; 1)  * (time2 - time1) * ACS_R_M_O)) &gt;&gt; ACS_SHIFT_M);	}</code></pre></div>
+
+<p>So every 40ms we get a very small chunk of mAms used capacity. But even if we have a 32bit
+variable this is only 1193 mAh. Not enough for most models.</p>
+
+<h3 id="getting-the-result">Getting the result</h3>
+<p>To transform mAms to mAh we just need to divide the mAms by 3600,000. But if we do that
+every measurement with the small chunks, we wont get any result.
+So in the main.c the mAms are added and checked if its greater than 1 mAh = 3600,000 mAms.
+If so we increase the used capacity in mAh by 1 and substract 3600,000 from the mAms variable.</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno"> 1</span> //Check for capacity overflow
+<span class="lineno"> 2</span> if( cap_mAms &gt;= 3600000 ) {
+<span class="lineno"> 3</span> 	cap_mAms -= 3600000;  //- one mAh
+<span class="lineno"> 4</span> 	cap_mAh++;			  //+ one mAh
+<span class="lineno"> 5</span> 	flight_cap.cap = cap_mAh; //set capa used for flight pack capacity sensor
+<span class="lineno"> 6</span> 	power.cap1--;         //subtract from capacity output
+<span class="lineno"> 7</span> 	//Check for alarm: under BAT_MIN (for powerbox sensor only)
+<span class="lineno"> 8</span> 	if( power.cap1 <span class="err">&lt;</span>= cap_min ) {
+<span class="lineno"> 9</span> 			power.cap1_alarm = true;
+<span class="lineno">10</span> 	}
+<span class="lineno">11</span> }</code></pre></div>
+
+<p>Then we set the flight_cap.cap for the Spektrum Flight Pack Capacity sensor and power.cap1
+for the Powerbox Cap1 Sensor value (this is counted down). If power.cap1 goes under 20% of
+the full battery capacity the Powerbox alarm is triggered.</p>
+
+<p>This is it for the core firmware functionality. There are additional setup functions and
+all the stuff around the BMP180 pressure / altitude sensor. I might or might not cover that
+in a later post.</p>
+
+
+          
+      <a class="share" href="https://twitter.com/intent/tweet?text=&quot;Firmware Part 3&quot;%20%20via%20&#64;" data-dnt="true">Share</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+      
+
+
+      </article>
+
+    </section>
+</div>
+
+<div class="push"></div>
+  <footer>
+    <aside class="wrap">
+      <ol class="prev-posts">
+        <p class="list-title">Recent Posts</p>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/Software_part_3" title="Firmware Part 3">Firmware Part 3 </a></span>
+              <span class="date">Feb 23, 2015</span>
+            </li>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/Software_part_2" title="Firmware Part 2">Firmware Part 2 </a></span>
+              <span class="date">Feb 22, 2015</span>
+            </li>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/Getting_the_parts" title="Getting the parts">Getting the parts </a></span>
+              <span class="date">Jan 25, 2015</span>
+            </li>
+        
+      </ol>
+      
+      <div class="social">
+        <ul>
+            <li><a id="mail" href="mailto:git@cescholz.de"><span class="foot-link">Contact Me</span></a></li>
+            
+            
+            
+            
+            
+        </ul>
+    </div>
+    </aside>
+    <small>&copy; 2015 Christian. Powered by <a href="http://jekyllrb.com">Jekyll</a> using the <a href="http://jekyll.gtat.me/about">Balzac</a> theme.</small>
+  </footer>
+
+  <!-- If they're out, get some from the cellar -->
+  <script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+  <script src="/assets/js/retina.min.js"></script>
+
+  <!-- Custom JS -->
+  <script src="/assets/js/scripts.js"></script>
+  
+
+  </body>
+</html>

@@ -149,7 +149,7 @@ if( VARIO_TEL ) {
 }
 {% endhighlight %}
 
-*In my experience, his is not working for the XMEGA!* And two addresses can be applied with
+*In my experience, this is not working for the XMEGA!* And two addresses can be applied with
 respect to the datasheet, but not three.
 
 So the further code looks like this:
@@ -173,7 +173,7 @@ for (uint8_t i = 0; i < TWIS_SEND_BUFFER_SIZE; i++) {
 }
 {% endhighlight %}
 
-The magic is done by  writing  0x4B to the upper 7bits of the Slave ADDRMASK Address Mask Register.
+The magic is done by  writing  0x7F to the upper 7bits of the Slave ADDRMASK Address Mask Register.
 The datasheet says:
 
 "If ADDREN is set to zero, ADDRMASK can be loaded with a 7-bit slave address mask. Each bit in ADDRMASK
@@ -186,10 +186,14 @@ We leave ADDREN (Bit 0 of the same register) to zero. The mask is calculated as 
 0000 0011	Current Sensor address
 0000 1010	Powerbox Sensor address
 0100 0000   Vario Sensor address
-0011 0100   Flight Cap Sensor address
+0011 0100   Flight Pack Capacity Sensor address
 -----------------------------------
 0111 1111   = 0x7F as Address Mask
 {% endhighlight %}
+
+**EDIT:** With the new Flight Pack Capacity Sensor and the used combination of sensors, the
+method here is of no use. This will react to every address and be the same as the
+`Promiscuous Mode` described above. I leave it in for explanation and change options.
 
 The last part of the code initializes the receive buffer.
 

@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Firmware Part 2 &#8211; spektel-sensor</title>
+<meta name="description" content="Doing the measurements">
+<meta name="keywords" content="Atmel, AVR, microcontroller, XMEGA, XMEGA32E5, firmware">
+
+
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Firmware Part 2 &#8211; spektel-sensor">
+<meta property="og:description" content="Doing the measurements">
+<meta property="og:url" content="/articles/Software_part_2">
+<meta property="og:site_name" content="spektel-sensor">
+
+
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="spektel-sensor Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Type -->
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Crimson+Text:400,400italic,700,700italic" rel='stylesheet' type='text/css' />
+<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="/assets/css/entypo.css" media="all">
+
+<!-- In order to use Calendas Plus, you must first purchase it. Then, create a font-face package using FontSquirrel.
+<link rel='stylesheet' href='/assets/cal.css' media='all' />
+-->
+
+
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/i.css">
+
+<!-- Fresh Squeezed jQuery -->
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- Load Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.6.2.custom.min.js"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<link rel="shortcut icon" href="/favicon.ico">
+
+<div id="bump">
+  <body class="">
+    <header class="site-header">
+      <div class="wrap">
+        <hgroup>
+          <h1><a href="/">spektel-sensor</a></h1>
+        </hgroup>
+        <a href="#nav" class="menu"><span class='icons'>☰</span></a>
+        <nav role="navigation">
+          <ul>
+            <li>
+              <a href="/" title="spektel-sensor">Home</a>
+            </li>
+            
+            
+                <li><a href="/about" >About</a></li>
+            
+                <li><a href="https://github.com/csc13/spektel-sensor" target="_blank">Github</a></li>
+            
+
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+
+<section class="article">
+
+
+  <div class="overlay"></div>
+  <div class="featured-image" style="background-image: url(/images/Board_REV_B.jpg)"></div>
+
+
+
+      <article class="wrap post">
+        <header class="post-header">
+          <hgroup>
+            <h1>Firmware Part 2</h1>
+            <p class="date">Feb 22, 2015</p>
+            <p class="intro">Doing the measurements</p>
+          </hgroup>
+        </header>
+    
+        <p>Last year I promised to give a deeper look in the calculations. So to learn about the start 
+of a measurement go back to <a href="/articles/Software_part_1">Firmware Part 1</a>.</p>
+
+<h3 id="adc-base-values">ADC base values</h3>
+<p>Getting the XMEGA datasheet Analog Digital Converter part, it says that if running in single ended unsigned mode, the
+measurement value for GND is 205. This is to be able to measure a 0V voltage without problems.
+To get the exact value was a problem. By measurement it was around 160. So I implemented
+a self calibration (triggered by the button) to get the exact value at 0V. This variable
+is named <code>adc_usig_base</code> and read from EEPROM.</p>
+
+<p>The next needed value is the resolution for each bit (called Least Significant Bit).
+For 12bit resolution this is 0.4899mV/LSB (constant <code>ADC_MV_12RES</code>).</p>
+
+<h3 id="measuring-the-voltage">Measuring the voltage</h3>
+<p>Is easy and just uses a voltage divider of 15.24 ((4.7K + 330) / 330) (constant <code>MAIN_RES_DIV</code>)
+to get the voltage from up to 26V to the measurement range of the XMEGA up to Vcc/1.6 = 2.06V 
+in the single ended mode with 12bit resolution.</p>
+
+<p>The calculation looks like the following:</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> uint16_t calc_main_mV(uint16_t res) {
+<span class="lineno">2</span> 	if( res <span class="err">&lt;</span>= adc_usig_base ) { 
+<span class="lineno">3</span> 		return 0; //clipping if the input is less than adc_usig_base
+<span class="lineno">4</span> 	}
+<span class="lineno">5</span> 	else {
+<span class="lineno">6</span> 		double _v = (double)((double)(res - adc_usig_base) * (double)ADC_MV_12RES * (double)MAIN_RES_DIV / 10);
+<span class="lineno">7</span> 		return (uint16_t)_v;
+<span class="lineno">8</span> 	}</code></pre></div>
+
+<p>We substract the <code>adc_usig_base</code> to get the correct range and multiply the result with the 12bit 
+resolution to get mV. Then we need to multiply with the voltage divider to get the correct voltage.
+In this case we divide by 10 to get 10mV as the result unit as needed for the Powerbox voltage
+sensor.</p>
+
+<h3 id="measuring-the-current">Measuring the current</h3>
+<p>The main task of the sensor is to read and transmit the current of the main battery pack.
+Depending on the current running through the ACS758 hall sensor it outputs a voltage. This
+voltage depends on the operating voltage Vcc and the current. The ACS758 can be operated
+up to 5V and this is the voltage base in the datasheet. So we need to adjust all datasheet
+values be a factor of 3.3V/5V = 0.66. Many values differ by the device, so all constants are
+defined in the conf_board.h file (eg. to be able to change to a 200A version).</p>
+
+<h3 id="acs758-base-values">ACS758 base values</h3>
+<p>We use the 100U version with Vcc 3.3V. So we get the following values:</p>
+
+<ul>
+  <li>Voltage at Ip = 0A (no current) = 0.6V * 0.66 (for Vcc = 3.3V) = 0.396V (constant <code>ACS758_BASE</code>)</li>
+  <li>Sensitivity for 1A = 40mV at Vcc = 5V</li>
+  <li>Sensitivity for 1A at Vcc = 3.3V = 26.4mV (by measuring its only 24mV) (constant <code>ACS758_RATE</code>)</li>
+  <li>Voltage at Ip = 100A = 0.0264V * 100 + 0.396V = 3.036V</li>
+</ul>
+
+<p>That is close to the upper power rail of Vcc = 3.3V and to much for the XMEGA ADC. This
+can measure up to Vcc/1.6 = 2.06V in the single ended mode with 12bit resolution. So we need to
+apply a voltage divider to bring the Vout from the ACS758 to under 2.06V.</p>
+
+<p>A voltage divider by 1.64 will do. I used a pair of 3K and 4.7K. This is calculated by
+(3K + 4.7K) / 4.7K = 1.638. This looks pretty exact, but don’t forget the resistors have
+tolerances by 1-2%. This is the constant <code>CUR_RES_DIV</code>.</p>
+
+<p>To get the measurement at 0A we can use the self calibration procedure as well. The variable
+is called <code>adc_b</code> and stored in the EEPROM. </p>
+
+<h3 id="calculate-the-current">Calculate the current</h3>
+<p>The formular looks like this:
+RES is the 12 bit result from the measurement.</p>
+
+<p><code>I = (((RES - ADC_USIG_BASE * ADC_MV_12RES * CUR_RES_DIV) - ACS758_BASE) / ACS758_RATE</code></p>
+
+<p>We substract the ADC base value for 0V and mutliply this with the resolution and 
+voltage divider. From this voltage we substract the base voltage for 0A from the sensor and
+multiply with the sensitivity to get the current. Then with some mathematic transformations:</p>
+
+<p><code>I * ACS758_RATE = ((RES - ADC_USIG_BASE) * ADC_MV_12RES * CUR_RES_DIV) - ACS758_BASE</code></p>
+
+<p><code>I * ACS758_RATE / ADC_MV_12RES / CUR_RES_DIV = (RES - ADC_USIG_BASE) - (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV)</code></p>
+
+<p><code>I = ((RES - ADC_USIG_BASE) - (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV)) * (ADC_MV_12RES * CUR_RES_DIV / ACS758_RATE)</code></p>
+
+<p>var: <code>ACS_B = (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV)</code></p>
+
+<p>var: <code>ACS_R = (ADC_MV_12RES / ACS758_RATE * CUR_RES_DIV)</code></p>
+
+<p><code>I = (RES - ADC_USIG_BASE - ACS_B) * ACS_R</code></p>
+
+<p>var: <code>ADC_B = (ADC_USIG_BASE + ACS_B)</code></p>
+
+<p><code>I = ((RES - ADC_B) * ACS_R</code></p>
+
+<p><code>ACS_B</code> and <code>ACS_R</code> can be precalculated to save time. <code>ADC_B</code> can be measured through self 
+calibration and is the same as <code>adc_b</code>.</p>
+
+<p><code>ACS758_RATE</code> will result in A. But for the telemetrie we want the result in 10mA or mA for
+the capacity measurement. This is done with <code>_M1</code> for 10mA and <code>_M</code> for mA.</p>
+
+<h3 id="problems-with-the-calculation">Problems with the calculation</h3>
+<p>The first problem is, that I use unsigned integer. But this is bad, if the there is some 
+drift and the measurement goes under <code>ADC_B</code>. This can be solved by clipping all results
+below this value and simply return 0A.</p>
+
+<p>The next problem is, that <code>ACS_R</code> will be a floating point number like 0.0312. If we
+switch to 32bit integer and multiply all numbers by a factor x, so the 32bit field will
+not be exceeded, this will lead to greater precision of the calculation.
+At the end of the calculation we then divide again and get the correct value. If we
+multiply by an exponent of 2, we can divide with a simple and fast shift operation.
+To calculate the maximum factor in the 32bit limit I used an Excel sheet, you will
+find in the Github repository. The calculation the looks like:</p>
+
+<p><code>I = (((RES - ADC_B) * ACS_R_O) &gt;&gt; ACS_SHIFT</code></p>
+
+<p><code>ACS_SHIFT</code> = 5 divides by 32 for example.</p>
+
+<p>In the calc_measure.c the whole thing looks like this:</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="lineno">1</span> uint16_t calc_mA(uint16_t res) {
+<span class="lineno">2</span> 	if( adc_b &gt;= res ) { 
+<span class="lineno">3</span> 		return 0; //clipping to zero
+<span class="lineno">4</span> 	}
+<span class="lineno">5</span> 	uint32_t _c = (( (uint32_t)( ((uint32_t)(res - adc_b)) * ((uint32_t)ACS_R_M1_O) ) ) &gt;&gt; ACS_SHIFT_M1);
+<span class="lineno">6</span> 	return ((uint16_t)_c);
+<span class="lineno">7</span> }</code></pre></div>
+
+<p>In this case the function returns the current in 10mA like required for the Spektrum
+telemetry Current sensor.</p>
+
+<p>In the next round I will explain the capacity measurement. Then we need to add the time
+component to the current measurement.</p>
+
+
+          
+      <a class="share" href="https://twitter.com/intent/tweet?text=&quot;Firmware Part 2&quot;%20%20via%20&#64;" data-dnt="true">Share</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+      
+
+
+      </article>
+
+    </section>
+</div>
+
+<div class="push"></div>
+  <footer>
+    <aside class="wrap">
+      <ol class="prev-posts">
+        <p class="list-title">Recent Posts</p>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/Software_part_3" title="Firmware Part 3">Firmware Part 3 </a></span>
+              <span class="date">Feb 23, 2015</span>
+            </li>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/Software_part_2" title="Firmware Part 2">Firmware Part 2 </a></span>
+              <span class="date">Feb 22, 2015</span>
+            </li>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/articles/Getting_the_parts" title="Getting the parts">Getting the parts </a></span>
+              <span class="date">Jan 25, 2015</span>
+            </li>
+        
+      </ol>
+      
+      <div class="social">
+        <ul>
+            <li><a id="mail" href="mailto:git@cescholz.de"><span class="foot-link">Contact Me</span></a></li>
+            
+            
+            
+            
+            
+        </ul>
+    </div>
+    </aside>
+    <small>&copy; 2015 Christian. Powered by <a href="http://jekyllrb.com">Jekyll</a> using the <a href="http://jekyll.gtat.me/about">Balzac</a> theme.</small>
+  </footer>
+
+  <!-- If they're out, get some from the cellar -->
+  <script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+  <script src="/assets/js/retina.min.js"></script>
+
+  <!-- Custom JS -->
+  <script src="/assets/js/scripts.js"></script>
+  
+
+  </body>
+</html>

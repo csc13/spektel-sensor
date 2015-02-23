@@ -33,7 +33,12 @@ but it's still a miracle. There are capacity sensors available by the RC system 
 or by 3rd party companies, but not for Spektrum-RC. There are many projects, but non I found
 offers all informations for an easy rebuild.
 
-So this is my try.
+**EDIT 2015-02-23**: Spektrum RC released their capacity sensor! And provided updates for the
+transmitters for this new Flight pack capacity sensor (this project supports this new
+sensor display as well). Then the JLog 2.6 from [R²prototyping GmbH](http://www.r2prototyping.ch/?page_id=709)
+has support for Spektrum RC (great engineering).
+
+So nobody needs to build a DIY sensor. But you can, if you want!
 
 ### The project setup
 The sensor is based on the flowing components:
@@ -44,22 +49,22 @@ The sensor is based on the flowing components:
 The firmware was developed in C using Atmel Studio 6 and the Atmel ASF framework.
 
 	Note: The Spektrum RC TM1000 telemetry modul, a DSMX receiver with data port and a 
-	transmitter with telemetry functions are required to use the sensor. Not all Spektrum RC telemetry able
-	transmitters support all sensors. I use a DX9 for testing.
+	transmitter with telemetry functions are required to use the sensor. Not all Spektrum RC 
+	telemetry able transmitters support all sensors. I use a DX9 for testing.
 
 ### Basic functions
 The sensor measures 25 times a second the actual current, voltage and pressure. From this 
 it calculates the used capacity, hight and climb rate.
 
-- Show used capacity of main battery
+- Show used capacity of main  battery
 - Show actual current of main battery
 - Show actual voltage of main battery
 
-### Planned functions
-- Show altitude
-- Show climb rate
-- Show cell voltages of main battery
-- Make it somehow programmable (change the current alarm for example)
+### Advanced functions
+- Show altitude (done)
+- Show climb rate (open)
+- Show cell voltages of main battery (maybe in the future)
+- Make it somehow programmable (change the current alarm for example) (done)
 
 ### GitHub project structure
 - firmware (compiled firmware for XMEGA)

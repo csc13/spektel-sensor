@@ -86,7 +86,7 @@ multiply with the sensitivity to get the current. Then with some mathematic tran
 
 `I * ACS758_RATE / ADC_MV_12RES / CUR_RES_DIV = (RES - ADC_USIG_BASE) - (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV)`
 
-`I = (RES - ADC_USIG_BASE) - (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV) * (ADC_MV_12RES * CUR_RES_DIV / ACS758_RATE)`
+`I = ((RES - ADC_USIG_BASE) - (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV)) * (ADC_MV_12RES * CUR_RES_DIV / ACS758_RATE)`
 	 
 var: `ACS_B = (ACS758_BASE / ADC_MV_12RES / CUR_RES_DIV)`
 
